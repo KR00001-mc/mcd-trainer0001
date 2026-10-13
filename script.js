@@ -31,7 +31,7 @@ const allProducts = [
   { category: 'サイド・フード', name: 'チキンナゲット 15ピース', isTripleSource: true, note: 'BBQソース または マスタードソースから合計3つ' },
   { category: 'サイド・フード', name: 'プチパンケーキ', required: ['フォーク', 'りんご＆クリーム'], note: 'フォーク / りんご&クリーム' },
   { category: 'サイド・フード', name: 'シャカチキ', required: ['チェダーチーズ味粉末'], note: 'チェダーチーズ味粉末' },
-  { category: 'サイド・フード', name: 'ホットケーキ', required: ['ナイフ＆フォーク', 'バター', 'ホットケーキシロップ'], note: 'ナイフ&フォーク / バター / ホットケーキシロップ' }
+  { category: 'サイド・フード', name: 'ホットケーキ', required: ['ナイフ＆フォーク', 'バター', 'ホットケーキシロップ'], note: 'ナイフ&フォーク / Butter / メープル' }
 ];
 
 const noCondimentsProducts = [
@@ -48,9 +48,12 @@ let timer = null;
 let timeLeft = 0;
 let sessionQuestions = [];
 let wrongCategories = [];
+let isMarathon = false;
+let marathonStreak = 0;
 
 function startGame(level) {
-  if (level === 0) timeLimit = 0; // 0なら無制限
+  isMarathon = false;
+  if (level === 0) timeLimit = 0;
   if (level === 1) timeLimit = 15;
   if (level === 2) timeLimit = 10;
   if (level === 3) timeLimit = 7;
@@ -59,7 +62,7 @@ function startGame(level) {
   questionIndex = 0;
   score = 0;
   wrongCategories = [];
-  generateSessionQueue();
+  generateSessionQueue(5);
 
   document.getElementById('start-screen').style.display = 'none';
   document.getElementById('result-screen').style.display = 'none';
@@ -67,28 +70,51 @@ function startGame(level) {
   startReadyCountdown();
 }
 
-function generateSessionQueue() {
+function startMarathonMode() {
+  isMarathon = true;
+  timeLimit = 10;
+  marathonStreak = 0;
+  wrongCategories = [];
+
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('result-screen').style.display = 'none';
+  
+  loadNextMarathonQuestion();
+  startReadyCountdown();
+}
+
+function generateSessionQueue(count) {
   sessionQuestions = [];
   const noCondimentCount = Math.floor(Math.random() * 2) + 1;
-  const withCondimentCount = 5 - noCondimentCount;
+  const withCondimentCount = count - noCondimentCount;
 
   let shuffledWith = [...allProducts].sort(() => 0.5 - Math.random());
   for (let i = 0; i < withCondimentCount; i++) {
-    sessionQuestions.push(shuffledWith[i]);
+    sessionQuestions.push(shuffledWith[i % shuffledWith.length]);
   }
 
   let shuffledNo = [...noCondimentsProducts].sort(() => 0.5 - Math.random());
   for (let i = 0; i < noCondimentCount; i++) {
-    sessionQuestions.push(shuffledNo[i]);
+    sessionQuestions.push(shuffledNo[i % shuffledNo.length]);
   }
 
   sessionQuestions.sort(() => 0.5 - Math.random());
 }
 
+function loadNextMarathonQuestion() {
+  const pool = [...allProducts, ...noCondimentsProducts];
+  currentProduct = pool[Math.floor(Math.random() * pool.length)];
+}
+
 function startReadyCountdown() {
   document.getElementById('game-screen').style.display = 'none';
   document.getElementById('ready-screen').style.display = 'block';
-  document.getElementById('ready-question-num').textContent = `第 ${questionIndex + 1} 問 / 全5問`;
+  
+  if (isMarathon) {
+    document.getElementById('ready-question-num').textContent = `連続正解数: ${marathonStreak} 問`;
+  } else {
+    document.getElementById('ready-question-num').textContent = `第 ${questionIndex + 1} 問 / 全5問`;
+  }
 
   let count = 3;
   document.getElementById('ready-countdown').textContent = count;
@@ -111,7 +137,12 @@ function nextProduct() {
   timeLeft = timeLimit;
   updateTimerDisplay();
 
-  currentProduct = sessionQuestions[questionIndex];
+  if (isMarathon) {
+    loadNextMarathonQuestion();
+  } else {
+    currentProduct = sessionQuestions[questionIndex];
+  }
+
   document.getElementById('product-name').textContent = currentProduct.name;
   
   clearSelection();
@@ -119,7 +150,6 @@ function nextProduct() {
   resultDiv.className = 'result-area';
   resultDiv.textContent = '';
 
-  // timeLimitが0（無制限）でなければタイマーを動かす
   if (timeLimit > 0) {
     timer = setInterval(() => {
       timeLeft--;
@@ -138,16 +168,29 @@ function updateTimerDisplay() {
   } else {
     document.getElementById('timer-display').textContent = `残り時間: ${timeLeft}秒`;
   }
-  document.getElementById('streak-counter').textContent = `問題: ${questionIndex + 1} / 5`;
+
+  if (isMarathon) {
+    document.getElementById('streak-counter').textContent = `連続正解: ${marathonStreak}`;
+  } else {
+    document.getElementById('streak-counter').textContent = `問題: ${questionIndex + 1} / 5`;
+  }
 }
 
 function timeOut() {
-  wrongCategories.push(currentProduct.category);
-  const resultDiv = document.getElementById('result-message');
-  resultDiv.className = 'result-area result-error';
-  resultDiv.innerHTML = `⏰ **時間切れ！**<br>【正解の基準】: ${currentProduct.note}`;
-  
-  proceedToNext();
+  if (isMarathon) {
+    const resultDiv = document.getElementById('result-message');
+    resultDiv.className = 'result-area result-error';
+    resultDiv.innerHTML = `⏰ **時間切れ！ゲームオーバー！**<br>【正解の基準】: ${currentProduct.note}`;
+    setTimeout(() => {
+      showFinalResult();
+    }, 2000);
+  } else {
+    wrongCategories.push(currentProduct.category);
+    const resultDiv = document.getElementById('result-message');
+    resultDiv.className = 'result-area result-error';
+    resultDiv.innerHTML = `⏰ **時間切れ！**<br>【正解の基準】: ${currentProduct.note}`;
+    proceedToNext();
+  }
 }
 
 function toggleCondiment(name) {
@@ -217,15 +260,33 @@ function checkAnswer() {
 
   if (isCorrect) {
     score++;
+    if (isMarathon) {
+      marathonStreak++;
+    }
     resultDiv.className = 'result-area result-success';
     resultDiv.innerHTML = `✨ **正解！**<br>【規定ルール】: ${currentProduct.note}`;
+    
+    setTimeout(() => {
+      if (isMarathon) {
+        startReadyCountdown();
+      } else {
+        proceedToNext();
+      }
+    }, 1500);
+
   } else {
     wrongCategories.push(currentProduct.category);
     resultDiv.className = 'result-area result-error';
     resultDiv.innerHTML = `⚠️ **不合格**<br>理由: ${reason}<br>【正解の基準】: ${currentProduct.note}`;
+    
+    setTimeout(() => {
+      if (isMarathon) {
+        showFinalResult();
+      } else {
+        proceedToNext();
+      }
+    }, 2000);
   }
-
-  proceedToNext();
 }
 
 function proceedToNext() {
@@ -236,35 +297,48 @@ function proceedToNext() {
     } else {
       startReadyCountdown();
     }
-  }, 2000);
+  }, 500);
 }
 
 function showFinalResult() {
   document.getElementById('game-screen').style.display = 'none';
   document.getElementById('result-screen').style.display = 'block';
 
-  document.getElementById('score-text').textContent = `5 問 中 ${score} 問 正解！`;
-
   const weaknessDiv = document.getElementById('weakness-text');
 
-  if (score === 5) {
-    document.getElementById('result-title').textContent = '🎉 全問正解！完璧です！';
-    weaknessDiv.innerHTML = '素晴らしい精度です！すべてのコンディメントルールを完璧にマスターしています。';
-  } else {
-    document.getElementById('result-title').textContent = 'ゲーム終了！';
+  if (isMarathon) {
+    document.getElementById('result-title').textContent = '🏃‍♂️ マラソンモード終了！';
+    document.getElementById('score-text').textContent = `連続正解記録: ${marathonStreak} 問！`;
     
-    const counts = {};
-    wrongCategories.forEach(cat => {
-      counts[cat] = (counts[cat] || 0) + 1;
-    });
-
-    let adviceHTML = '<strong>【特にミスが多めだったジャンル】</strong><br><ul style="margin-left: 20px; margin-top: 5px;">';
-    for (let cat in counts) {
-      adviceHTML += `<li><strong>${cat}</strong> (${counts[cat]}回ミス)</li>`;
+    if (marathonStreak >= 10) {
+      weaknessDiv.innerHTML = '素晴らしい集中力です！現場のプロとして完璧なスピードと正確性を持っています！';
+    } else if (marathonStreak >= 5) {
+      weaknessDiv.innerHTML = 'いい調子です！コンディメントの組み合わせがかなり体に染みついてきていますね。';
+    } else {
+      weaknessDiv.innerHTML = 'お疲れ様でした！「勉強用モード」でルールを見直して、さらに記録を伸ばしていきましょう！';
     }
-    adviceHTML += '</ul><br>';
-    adviceHTML += '「勉強用モード」で該当ジャンルをもう一度確認してみましょう！';
-    weaknessDiv.innerHTML = adviceHTML;
+  } else {
+    document.getElementById('score-text').textContent = `5 問 中 ${score} 問 正解！`;
+
+    if (score === 5) {
+      document.getElementById('result-title').textContent = '🎉 全問正解！完璧です！';
+      weaknessDiv.innerHTML = '素晴らしい精度です！すべてのコンディメントルールを完璧にマスターしています。';
+    } else {
+      document.getElementById('result-title').textContent = 'ゲーム終了！';
+      
+      const counts = {};
+      wrongCategories.forEach(cat => {
+        counts[cat] = (counts[cat] || 0) + 1;
+      });
+
+      let adviceHTML = '<strong>【特にミスが多めだったジャンル】</strong><br><ul style="margin-left: 20px; margin-top: 5px;">';
+      for (let cat in counts) {
+        adviceHTML += `<li><strong>${cat}</strong> (${counts[cat]}回ミス)</li>`;
+      }
+      adviceHTML += '</ul><br>';
+      adviceHTML += '「勉強用モード」で該当ジャンルをもう一度確認してみましょう！';
+      weaknessDiv.innerHTML = adviceHTML;
+    }
   }
 }
 
