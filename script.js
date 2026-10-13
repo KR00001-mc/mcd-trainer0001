@@ -47,7 +47,7 @@ let timeLimit = 0;
 let timer = null;
 let timeLeft = 0;
 let sessionQuestions = [];
-let wrongCategories = [];
+let wrongItems = []; // 間違えた問題の詳細を保持
 let isMarathon = false;
 let marathonStreak = 0;
 
@@ -61,7 +61,7 @@ function startGame(level) {
 
   questionIndex = 0;
   score = 0;
-  wrongCategories = [];
+  wrongItems = [];
   generateSessionQueue(5);
 
   document.getElementById('start-screen').style.display = 'none';
@@ -74,7 +74,7 @@ function startMarathonMode() {
   isMarathon = true;
   timeLimit = 10;
   marathonStreak = 0;
-  wrongCategories = [];
+  wrongItems = [];
 
   document.getElementById('start-screen').style.display = 'none';
   document.getElementById('result-screen').style.display = 'none';
@@ -185,7 +185,7 @@ function timeOut() {
       showFinalResult();
     }, 2000);
   } else {
-    wrongCategories.push(currentProduct.category);
+    wrongItems.push(currentProduct);
     const resultDiv = document.getElementById('result-message');
     resultDiv.className = 'result-area result-error';
     resultDiv.innerHTML = `⏰ **時間切れ！**<br>【正解の基準】: ${currentProduct.note}`;
@@ -256,7 +256,7 @@ function checkAnswer() {
     }, 1500);
 
   } else {
-    wrongCategories.push(currentProduct.category);
+    wrongItems.push(currentProduct);
     resultDiv.className = 'result-area result-error';
     resultDiv.innerHTML = `⚠️ **不合格**<br>理由: ${reason}<br>【正解の基準】: ${currentProduct.note}`;
     
@@ -307,17 +307,15 @@ function showFinalResult() {
     } else {
       document.getElementById('result-title').textContent = 'ゲーム終了！';
       
-      const counts = {};
-      wrongCategories.forEach(cat => {
-        counts[cat] = (counts[cat] || 0) + 1;
+      let adviceHTML = '<strong>【❌ 間違えた問題と正解の確認】</strong><br><div style="margin-top: 8px; text-align: left;">';
+      wrongItems.forEach((item, idx) => {
+        adviceHTML += `<div style="background: #fff5f5; border-left: 4px solid #da291c; padding: 8px; margin-bottom: 8px; border-radius: 4px;">`;
+        adviceHTML += `<strong>Q${idx + 1}. ${item.name}</strong><br>`;
+        adviceHTML += `<span style="color: #2e7d32;">✔ 正解: ${item.note}</span>`;
+        adviceHTML += `</div>`;
       });
+      adviceHTML += '</div>';
 
-      let adviceHTML = '<strong>【特にミスが多めだったジャンル】</strong><br><ul style="margin-left: 20px; margin-top: 5px;">';
-      for (let cat in counts) {
-        adviceHTML += `<li><strong>${cat}</strong> (${counts[cat]}回ミス)</li>`;
-      }
-      adviceHTML += '</ul><br>';
-      adviceHTML += '「勉強用モード」で該当ジャンルをもう一度確認してみましょう！';
       weaknessDiv.innerHTML = adviceHTML;
     }
   }
