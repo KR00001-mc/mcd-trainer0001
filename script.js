@@ -27,16 +27,16 @@ const allProducts = [
   // サイド・フード
   { category: 'サイド・フード', name: 'サイドサラダ', required: ['フォーク', 'ごまドレッシング'], note: 'フォーク / ゴマドレッシング' },
   { category: 'サイド・フード', name: 'えだまめコーン', required: ['スプーン'], note: 'スプーン' },
-  { category: 'サイド・フード', name: 'チキンナゲット 5ピース', sourceOptions: ['BBQソース', 'マスタードソース'], note: 'BBQソース または マスタードソース（1つ）' },
-  { category: 'サイド・フード', name: 'チキンナゲット 15ピース', isTripleSource: true, note: 'BBQソース または マスタードソースから合計3つ' },
+  { category: 'サイド・フード', name: 'チキンナゲット 5ピース', required: ['ナゲットソース'], note: 'ナゲットソース（1つ）' },
+  { category: 'サイド・フード', name: 'チキンナゲット 15ピース', required: ['ナゲットソース', 'ナゲットソース', 'ナゲットソース'], note: 'ナゲットソース（3つ）' },
   { category: 'サイド・フード', name: 'プチパンケーキ', required: ['フォーク', 'りんご＆クリーム'], note: 'フォーク / りんご&クリーム' },
   { category: 'サイド・フード', name: 'シャカチキ', required: ['チェダーチーズ味粉末'], note: 'チェダーチーズ味粉末' },
-  { category: 'サイド・フード', name: 'ホットケーキ', required: ['ナイフ＆フォーク', 'バター', 'ホットケーキシロップ'], note: 'ナイフ&フォーク / Butter / メープル' }
+  { category: 'サイド・フード', name: 'ホットケーキ', required: ['ナイフ＆フォーク', 'バター', 'ホットケーキシロップ'], note: 'ナイフ&フォーク / バター / ホットケーキシロップ' }
 ];
 
 const noCondimentsProducts = [
   { category: 'コールドドリンク (L or M or S)', name: 'コールドドリンク各種', required: [], note: '基本そのまま（付属品なし）' },
-  { category: 'ハッピーセット用ドリンク (S)', name: 'ハッピーセット用コールドドリンク (S)', required: ['曲がるストロー'], note: '曲がるストローをつける' }
+  { category: 'ハッピーセット用ドリンク (S)', name: 'ハッピーセット用コールドドリンク (S)', required: ['フレキシブルストロー'], note: 'フレキシブルストローをつける' }
 ];
 
 let currentProduct = null;
@@ -221,41 +221,22 @@ function checkAnswer() {
   let isCorrect = true;
   let reason = '';
 
-  if (currentProduct.isTripleSource) {
-    const bbqCount = selectedCondiments.filter(item => item === 'BBQソース').length;
-    const mustardCount = selectedCondiments.filter(item => item === 'マスタードソース').length;
-    if ((bbqCount + mustardCount) !== 3) {
-      isCorrect = false;
-      reason = 'ソースの合計が3つになるように選択してください。';
-    } else if (selectedCondiments.some(item => item !== 'BBQソース' && item !== 'マスタードソース')) {
-      isCorrect = false;
-      reason = 'ソース以外の不要なアイテムが含まれています。';
-    }
-  } else if (currentProduct.sourceOptions) {
-    const hasBBQ = selectedCondiments.includes('BBQソース');
-    const hasMustard = selectedCondiments.includes('マスタードソース');
-    if ((hasBBQ && hasMustard) || (!hasBBQ && !hasMustard) || selectedCondiments.length !== 1) {
-      isCorrect = false;
-      reason = 'BBQまたはマスタードのいずれか1つのみを選択してください。';
-    }
-  } else {
-    const required = currentProduct.required;
-    let reqCopy = [...required];
-    let selCopy = [...selectedCondiments];
+  const required = currentProduct.required;
+  let reqCopy = [...required];
+  let selCopy = [...selectedCondiments];
 
-    for (let item of selectedCondiments) {
-      const reqIdx = reqCopy.indexOf(item);
-      if (reqIdx !== -1) {
-        reqCopy.splice(reqIdx, 1);
-        const selIdx = selCopy.indexOf(item);
-        selCopy.splice(selIdx, 1);
-      }
+  for (let item of selectedCondiments) {
+    const reqIdx = reqCopy.indexOf(item);
+    if (reqIdx !== -1) {
+      reqCopy.splice(reqIdx, 1);
+      const selIdx = selCopy.indexOf(item);
+      selCopy.splice(selIdx, 1);
     }
+  }
 
-    if (reqCopy.length > 0 || selCopy.length > 0) {
-      isCorrect = false;
-      reason = '付属品の過不足または不要なアイテムがあります。';
-    }
+  if (reqCopy.length > 0 || selCopy.length > 0) {
+    isCorrect = false;
+    reason = '付属品の過不足または不要なアイテムがあります。';
   }
 
   if (isCorrect) {
