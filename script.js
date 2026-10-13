@@ -47,7 +47,7 @@ let timeLimit = 0;
 let timer = null;
 let timeLeft = 0;
 let sessionQuestions = [];
-let wrongItems = []; // 間違えた問題の詳細を保持
+let wrongItems = [];
 let isMarathon = false;
 let marathonStreak = 0;
 
@@ -178,6 +178,7 @@ function updateTimerDisplay() {
 
 function timeOut() {
   if (isMarathon) {
+    wrongItems = [currentProduct]; // マラソンで間違えた（時間切れの）問題を保持
     const resultDiv = document.getElementById('result-message');
     resultDiv.className = 'result-area result-error';
     resultDiv.innerHTML = `⏰ **時間切れ！ゲームオーバー！**<br>【正解の基準】: ${currentProduct.note}`;
@@ -256,7 +257,7 @@ function checkAnswer() {
     }, 1500);
 
   } else {
-    wrongItems.push(currentProduct);
+    wrongItems.push(currentProduct); // 間違えた問題を保持
     resultDiv.className = 'result-area result-error';
     resultDiv.innerHTML = `⚠️ **不合格**<br>理由: ${reason}<br>【正解の基準】: ${currentProduct.note}`;
     
@@ -291,13 +292,27 @@ function showFinalResult() {
     document.getElementById('result-title').textContent = '🏃‍♂️ マラソンモード終了！';
     document.getElementById('score-text').textContent = `連続正解記録: ${marathonStreak} 問！`;
     
-    if (marathonStreak >= 10) {
-      weaknessDiv.innerHTML = '素晴らしい集中力です！現場のプロとして完璧なスピードと正確性を持っています！';
-    } else if (marathonStreak >= 5) {
-      weaknessDiv.innerHTML = 'いい調子です！コンディメントの組み合わせがかなり体に染みついてきていますね。';
-    } else {
-      weaknessDiv.innerHTML = 'お疲れ様でした！「勉強用モード」でルールを見直して、さらに記録を伸ばしていきましょう！';
+    let adviceHTML = '';
+    if (wrongItems.length > 0) {
+      adviceHTML += '<strong>【❌ 間違えてしまった問題の正解】</strong><br><div style="margin-top: 8px; text-align: left; margin-bottom: 15px;">';
+      wrongItems.forEach((item) => {
+        adviceHTML += `<div style="background: #fff5f5; border-left: 4px solid #da291c; padding: 8px; margin-bottom: 8px; border-radius: 4px;">`;
+        adviceHTML += `<strong>${item.name}</strong><br>`;
+        adviceHTML += `<span style="color: #2e7d32;">✔ 正解: ${item.note}</span>`;
+        adviceHTML += `</div>`;
+      });
+      adviceHTML += '</div>';
     }
+
+    if (marathonStreak >= 10) {
+      adviceHTML += '素晴らしい集中力です！現場のプロとして完璧なスピードと正確性を持っています！';
+    } else if (marathonStreak >= 5) {
+      adviceHTML += 'いい調子です！コンディメントの組み合わせがかなり体に染みついてきていますね。';
+    } else {
+      adviceHTML += 'お疲れ様でした！「勉強用モード」でルールを見直して、さらに記録を伸ばしていきましょう！';
+    }
+    weaknessDiv.innerHTML = adviceHTML;
+
   } else {
     document.getElementById('score-text').textContent = `5 問 中 ${score} 問 正解！`;
 
