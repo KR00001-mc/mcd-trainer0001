@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>マクドナルド コンディメント完全版トレーナー</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <h1>🍟 コンディメント完全版トレーナー</h1>
+      <p>制限時間内に正しい付属品を選んで連続5問クリアを目指そう！</p>
+    </header>
+
+    <main>
+      <!-- スタート前のレベル選択画面 -->
+      <section id="start-screen" class="screen">
+        <div class="study-mode-box">
+          <button class="btn-study" onclick="openStudyModal()">📖 勉強用モード（全メニュー・答え一覧）</button>
+        </div>
+
+        <h2>難易度（レベル）を選んでスタート</h2>
+        <div class="level-buttons">
+          <button class="level-btn level-0" onclick="startGame(0)">レベル 0 ☕ (時間無制限)</button>
+          <button class="level-btn" onclick="startGame(1)">レベル 1 (15秒 / 問)</button>
+          <button class="level-btn" onclick="startGame(2)">レベル 2 (10秒 / 問)</button>
+          <button class="level-btn" onclick="startGame(3)">レベル 3 (7秒 / 問)</button>
+          <button class="level-btn level-4" onclick="startGame(4)">レベル 4 🔥 (5秒 / 問)</button>
+        </div>
+      </section>
+
+      <!-- 問題開始前のカウントダウン画面 -->
+      <section id="ready-screen" class="screen" style="display: none; text-align: center;">
+        <h3 id="ready-question-num" style="font-size: 1.5rem; color: #da291c; margin-bottom: 15px;">第 1 問</h3>
+        <p style="font-size: 1.2rem; margin-bottom: 20px;">準備はいいですか？</p>
+        <div id="ready-countdown" style="font-size: 4rem; font-weight: bold; color: #ffc72c;">3</div>
+      </section>
+
+      <!-- ゲームプレイ画面 -->
+      <section id="game-screen" class="screen" style="display: none;">
+        <div class="game-info-bar">
+          <span id="streak-counter">問題: 1 / 5</span>
+          <span id="timer-display" class="timer-warning">残り時間: --</span>
+        </div>
+
+        <div class="product-card">
+          <h2>【注文商品】</h2>
+          <div id="product-name" class="product-title">-</div>
+        </div>
+
+        <div class="tray-section">
+          <h3>コンディメント・付属品トレイ</h3>
+          <p class="hint">必要なものをタップして選んでください（複数選択可）</p>
+
+          <div class="condiment-grid">
+            <button class="condi-btn" onclick="toggleCondiment('マドラー')">マドラー</button>
+            <button class="condi-btn" onclick="toggleCondiment('シュガー')">シュガー</button>
+            <button class="condi-btn" onclick="toggleCondiment('ミルク')">ミルク</button>
+            <button class="condi-btn" onclick="toggleCondiment('リキッドレモン')">リキッドレモン</button>
+            <button class="condi-btn" onclick="toggleCondiment('ガムシロップ')">ガムシロップ</button>
+            <button class="condi-btn" onclick="toggleCondiment('ティーバッグ')">ティーバッグ</button>
+            <button class="condi-btn" onclick="toggleCondiment('ストロー')">ストロー (通常)</button>
+            <button class="condi-btn" onclick="toggleCondiment('曲がるストロー')">曲がるストロー (HS用)</button>
+            <button class="condi-btn" onclick="toggleCondiment('スプーンストロー')">スプーンストロー (フロート)</button>
+            <button class="condi-btn" onclick="toggleCondiment('フォーク')">フォーク</button>
+            <button class="condi-btn" onclick="toggleCondiment('スプーン')">スプーン</button>
+            <button class="condi-btn" onclick="toggleCondiment('ナイフ＆フォーク')">ナイフ＆フォーク</button>
+            <button class="condi-btn" onclick="toggleCondiment('ごまドレッシング')">ごまドレッシング</button>
+            <button class="condi-btn" onclick="toggleCondiment('BBQソース')">BBQソース</button>
+            <button class="condi-btn" onclick="toggleCondiment('マスタードソース')">マスタードソース</button>
+            <button class="condi-btn" onclick="toggleCondiment('りんご＆クリーム')">りんご＆クリーム</button>
+            <button class="condi-btn" onclick="toggleCondiment('バター')">バター</button>
+            <button class="condi-btn" onclick="toggleCondiment('ホットケーキシロップ')">ホットケーキシロップ</button>
+            <button class="condi-btn" onclick="toggleCondiment('チェダーチーズ味粉末')">チェダーチーズ味粉末</button>
+          </div>
+        </div>
+
+        <div class="selected-section">
+          <h4>【現在トレイに載せているアイテム】</h4>
+          <div id="selected-list" class="selected-list">（選択されていません）</div>
+          <button class="btn-clear" onclick="clearSelection()">クリア</button>
+        </div>
+
+        <div class="action-section">
+          <button class="btn-submit" onclick="checkAnswer()">✅ お渡し判定（チェック）</button>
+        </div>
+
+        <div id="result-message" class="result-area"></div>
+      </section>
+
+      <!-- 結果・弱点分析画面 -->
+      <section id="result-screen" class="screen" style="display: none; text-align: center;">
+        <h2 id="result-title" style="font-size: 1.8rem; margin-bottom: 15px;">ゲーム終了！</h2>
+        <div class="analysis-box">
+          <p id="score-text" style="font-size: 1.4rem; font-weight: bold; margin-bottom: 15px;">5問中 0 問正解</p>
+          <div class="weakness-card">
+            <h4>📊 弱点分析・アドバイス</h4>
+            <div id="weakness-text" style="text-align: left; margin-top: 10px; line-height: 1.6;">-</div>
+          </div>
+        </div>
+        <button class="btn-primary" style="margin-top: 20px;" onclick="returnToTitle()">タイトルへ戻る</button>
+      </section>
+    </main>
+  </div>
+
+  <!-- 勉強用モーダル画面 -->
+  <div id="study-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>📖 コンディメント早見表</h2>
+        <span class="close-btn" onclick="closeStudyModal()">&times;</span>
+      </div>
+      <div class="modal-body" id="study-list"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
