@@ -181,7 +181,7 @@ function timeOut() {
     wrongItems = [currentProduct];
     const resultDiv = document.getElementById('result-message');
     resultDiv.className = 'result-area result-error';
-    resultDiv.innerHTML = `⏰ **時間切れ！ゲームオーバー！**<br>【正解の基準】: ${currentProduct.note}`;
+    resultDiv.innerHTML = `時間切れ！ゲームオーバー<br>正解: ${currentProduct.note}`;
     setTimeout(() => {
       showFinalResult();
     }, 2000);
@@ -189,7 +189,7 @@ function timeOut() {
     wrongItems.push(currentProduct);
     const resultDiv = document.getElementById('result-message');
     resultDiv.className = 'result-area result-error';
-    resultDiv.innerHTML = `⏰ **時間切れ！**<br>【正解の基準】: ${currentProduct.note}`;
+    resultDiv.innerHTML = `時間切れ<br>正解: ${currentProduct.note}`;
     proceedToNext();
   }
 }
@@ -246,7 +246,7 @@ function checkAnswer() {
       marathonStreak++;
     }
     resultDiv.className = 'result-area result-success';
-    resultDiv.innerHTML = `✨ **正解！**<br>【規定ルール】: ${currentProduct.note}`;
+    resultDiv.innerHTML = `正解！<br>正解: ${currentProduct.note}`;
     
     setTimeout(() => {
       if (isMarathon) {
@@ -259,7 +259,7 @@ function checkAnswer() {
   } else {
     wrongItems.push(currentProduct);
     resultDiv.className = 'result-area result-error';
-    resultDiv.innerHTML = `⚠️ **不合格**<br>理由: ${reason}<br>【正解の基準】: ${currentProduct.note}`;
+    resultDiv.innerHTML = `不合格<br>理由: ${reason}<br>正解: ${currentProduct.note}`;
     
     setTimeout(() => {
       if (isMarathon) {
@@ -289,44 +289,44 @@ function showFinalResult() {
   const weaknessDiv = document.getElementById('weakness-text');
 
   if (isMarathon) {
-    document.getElementById('result-title').textContent = '🏃‍♂️ マラソンモード終了！';
-    document.getElementById('score-text').textContent = `連続正解記録: ${marathonStreak} 問！`;
+    document.getElementById('result-title').textContent = 'マラソンモード終了';
+    document.getElementById('score-text').textContent = `連続正解記録: ${marathonStreak} 問`;
     
     let adviceHTML = '';
     if (wrongItems.length > 0) {
-      adviceHTML += '<strong>【❌ 間違えてしまった問題の正解】</strong><br><div style="margin-top: 8px; text-align: left; margin-bottom: 15px;">';
+      adviceHTML += '間違えてしまった問題の正解<br><div style="margin-top: 8px; text-align: left; margin-bottom: 15px;">';
       wrongItems.forEach((item) => {
         adviceHTML += `<div style="background: #fff5f5; border-left: 4px solid #da291c; padding: 8px; margin-bottom: 8px; border-radius: 4px;">`;
         adviceHTML += `<strong>${item.name}</strong><br>`;
-        adviceHTML += `<span style="color: #2e7d32;">✔ 正解: ${item.note}</span>`;
+        adviceHTML += `<span style="color: #2e7d32;">正解: ${item.note}</span>`;
         adviceHTML += `</div>`;
       });
       adviceHTML += '</div>';
     }
 
     if (marathonStreak >= 10) {
-      adviceHTML += '素晴らしい集中力です！現場のプロとして完璧なスピードと正確性を持っています！';
+      adviceHTML += '素晴らしい集中力です。現場のプロとして完璧なスピードと正確性を持っています。';
     } else if (marathonStreak >= 5) {
-      adviceHTML += 'いい調子です！コンディメントの組み合わせがかなり体に染みついてきていますね。';
+      adviceHTML += 'いい調子です。コンディメントの組み合わせがかなり体に染みついてきています。';
     } else {
-      adviceHTML += 'お疲れ様でした！「勉強用モード」でルールを見直して、さらに記録を伸ばしていきましょう！';
+      adviceHTML += 'お疲れ様でした。勉強用モードでルールを見直して、さらに記録を伸ばしていきましょう。';
     }
     weaknessDiv.innerHTML = adviceHTML;
 
   } else {
-    document.getElementById('score-text').textContent = `5 問 中 ${score} 問 正解！`;
+    document.getElementById('score-text').textContent = `5 問 中 ${score} 問 正解`;
 
     if (score === 5) {
-      document.getElementById('result-title').textContent = '🎉 全問正解！完璧です！';
-      weaknessDiv.innerHTML = '素晴らしい精度です！すべてのコンディメントルールを完璧にマスターしています。';
+      document.getElementById('result-title').textContent = '全問正解！完璧です';
+      weaknessDiv.innerHTML = '素晴らしい精度です。すべてのコンディメントルールを完璧にマスターしています。';
     } else {
-      document.getElementById('result-title').textContent = 'ゲーム終了！';
+      document.getElementById('result-title').textContent = 'ゲーム終了';
       
-      let adviceHTML = '<strong>【❌ 間違えた問題と正解の確認】</strong><br><div style="margin-top: 8px; text-align: left;">';
+      let adviceHTML = '間違えた問題と正解の確認<br><div style="margin-top: 8px; text-align: left;">';
       wrongItems.forEach((item, idx) => {
         adviceHTML += `<div style="background: #fff5f5; border-left: 4px solid #da291c; padding: 8px; margin-bottom: 8px; border-radius: 4px;">`;
         adviceHTML += `<strong>Q${idx + 1}. ${item.name}</strong><br>`;
-        adviceHTML += `<span style="color: #2e7d32;">✔ 正解: ${item.note}</span>`;
+        adviceHTML += `<span style="color: #2e7d32;">正解: ${item.note}</span>`;
         adviceHTML += `</div>`;
       });
       adviceHTML += '</div>';
@@ -361,7 +361,7 @@ function openStudyModal() {
     const block = document.createElement('div');
     block.className = 'study-category-block';
     
-    let html = `<div class="study-category-title">📁 ${cat}</div>`;
+    let html = `<div class="study-category-title">${cat}</div>`;
     if (cat.includes('コールドドリンク')) {
       html += `<div class="study-item-row">・コーラ、スプライト、ファンタ、Qoo、爽健美茶、野菜生活、オレンジ等： コンディメントなし</div>`;
     } else {
