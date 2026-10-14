@@ -33,6 +33,9 @@
 
       <!-- 問題開始前のカウントダウン画面 -->
       <section id="ready-screen" class="screen" style="display: none; text-align: center;">
+        <div style="text-align: left; margin-bottom: 10px;">
+          <button class="btn-home-top" onclick="confirmReturnHome()">🏠 ホームに戻る</button>
+        </div>
         <h3 id="ready-question-num" style="font-size: 1.5rem; color: #da291c; margin-bottom: 15px;">第 1 問</h3>
         <p style="font-size: 1.2rem; margin-bottom: 20px;">準備はいいですか？</p>
         <div id="ready-countdown" style="font-size: 4rem; font-weight: bold; color: #ffc72c;">3</div>
@@ -40,6 +43,10 @@
 
       <!-- ゲームプレイ画面 -->
       <section id="game-screen" class="screen" style="display: none;">
+        <div style="text-align: left; margin-bottom: 10px;">
+          <button class="btn-home-top" onclick="confirmReturnHome()">🏠 ホームに戻る</button>
+        </div>
+
         <div class="game-info-bar">
           <span id="streak-counter">問題: 1</span>
           <span id="timer-display" class="timer-warning">残り時間: --</span>
@@ -112,6 +119,23 @@
         <span class="close-btn" onclick="closeStudyModal()">&times;</span>
       </div>
       <div class="modal-body" id="study-list"></div>
+    </div>
+  </div>
+
+  <!-- ホームに戻る確認用モーダル画面 -->
+  <div id="home-confirm-modal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 380px; text-align: center;">
+      <div class="modal-header" style="background: #da291c;">
+        <h2>確認</h2>
+        <span class="close-btn" onclick="closeHomeConfirmModal()">&times;</span>
+      </div>
+      <div class="modal-body" style="padding: 25px 20px;">
+        <p style="font-size: 1.1rem; font-weight: bold; margin-bottom: 20px; color: #27251f;">本当にホームに戻りますか？<br><span style="font-size: 0.85rem; color: #c62828; font-weight: normal;">（現在のプレイデータはリセットされます）</span></p>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+          <button onclick="closeHomeConfirmModal()" style="background: #9e9e9e; color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 1rem;">いいえ</button>
+          <button onclick="executeReturnHome()" style="background: #da291c; color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 1rem;">はい</button>
+        </div>
+      </div>
     </div>
   </div>
 

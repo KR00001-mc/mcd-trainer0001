@@ -1,6 +1,5 @@
 // --- 実際のメニュー構成に基づく全商品データ ---
 
-// 1. コールドドリンク各種（コンディメントなし・L, M, Sサイズがランダムに出現）
 const coldDrinksBase = [
   'コカ・コーラ',
   'コカ・コーラ ゼロ',
@@ -14,7 +13,6 @@ const coldDrinksBase = [
 ];
 const coldDrinkSizes = ['L', 'M', 'S'];
 
-// 2. ハッピーセット用コールドドリンク（Sサイズ・フレキシブルストロー）
 const happySetDrinksBase = [
   'ハッピーセット ミルク',
   'ハッピーセット 爽健美茶',
@@ -22,7 +20,6 @@ const happySetDrinksBase = [
   'ハッピーセット 野菜生活100'
 ];
 
-// 3. ホットティー (S, M)
 const hotTeaProducts = [
   { name: 'ホットストレートティー (S)', category: 'ホットティー', required: ['ティーバッグ', 'シュガー', 'マドラー'], note: 'ティーバッグ / シュガー / マドラー' },
   { name: 'ホットレモンティー (S)', category: 'ホットティー', required: ['ティーバッグ', 'シュガー', 'マドラー', 'リキッドレモン'], note: 'ティーバッグ / シュガー / マドラー / リキッドレモン' },
@@ -32,7 +29,6 @@ const hotTeaProducts = [
   { name: 'ホットミルクティー (M)', category: 'ホットティー', required: ['ティーバッグ', 'ティーバッグ', 'シュガー', 'マドラー', 'ミルク'], note: 'ティーバッグ2個 / シュガー / マドラー / ミルク' }
 ];
 
-// 4. アイスティー (L, M, S)
 const iceTeaTypes = [
   { base: 'アイスストレートティー', required: ['ガムシロップ', 'マドラー'], note: 'ガムシロップ / マドラー' },
   { base: 'アイスレモンティー', required: ['ガムシロップ', 'マドラー', 'リキッドレモン'], note: 'ガムシロップ / マドラー / リキッドレモン' },
@@ -40,13 +36,9 @@ const iceTeaTypes = [
 ];
 const iceTeaSizes = ['L', 'M', 'S'];
 
-// 5. アイスコーヒー (L, M, S)
 const iceCoffeeSizes = ['L', 'M', 'S'];
-
-// 6. ホットコーヒー (M, S)
 const hotCoffeeSizes = ['M', 'S'];
 
-// 7. カフェラテ系 (M, S)
 const latteProducts = [
   { base: 'ホットカフェラテ', required: ['シュガー', 'マドラー'], note: 'シュガー / マドラー' },
   { base: 'ホットキャラメルラテ', required: ['マドラー'], note: 'マドラーのみ' },
@@ -54,7 +46,6 @@ const latteProducts = [
   { base: 'アイスキャラメルラテ', required: ['ストロー'], note: 'ストローのみ' }
 ];
 
-// 8. シェイク・フロート
 const specialDrinkProducts = [
   { name: 'マックシェイク バニラ (S)', category: 'マックシェイク・フロート', required: ['ストロー'], note: 'ストローのみ' },
   { name: 'マックシェイク バニラ (M)', category: 'マックシェイク・フロート', required: ['ストロー'], note: 'ストローのみ' },
@@ -66,7 +57,6 @@ const specialDrinkProducts = [
   { name: 'マックフロート コーヒー', category: 'マックシェイク・フロート', required: ['スプーンストロー'], note: 'スプーンストローのみ' }
 ];
 
-// 9. サイド・フード
 const foodProducts = [
   { name: 'サイドサラダ', category: 'サイド・フード', required: ['フォーク', 'ごまドレッシング'], note: 'フォーク / ごまドレッシング' },
   { name: 'えだまめコーン', category: 'サイド・フード', required: ['スプーン'], note: 'スプーンのみ' },
@@ -156,7 +146,6 @@ function getRandomProduct() {
 
 function generateSessionQueue(count) {
   sessionQuestions = [];
-  // コンディメントなしの割合を5問中0〜1問（約20%）に減らす
   const noCondimentCount = Math.random() < 0.6 ? 1 : 0; 
   const withCondimentCount = count - noCondimentCount;
 
@@ -447,8 +436,36 @@ function showFinalResult() {
 function returnToTitle() {
   clearInterval(timer);
   document.getElementById('game-screen').style.display = 'none';
+  document.getElementById('ready-screen').style.display = 'none';
   document.getElementById('result-screen').style.display = 'none';
   document.getElementById('start-screen').style.display = 'block';
+}
+
+// ホームに戻る確認モーダルの制御
+function confirmReturnHome() {
+  // プレイ中やカウントダウン中のタイマーを一時停止
+  clearInterval(timer);
+  document.getElementById('home-confirm-modal').style.display = 'flex';
+}
+
+function closeHomeConfirmModal() {
+  document.getElementById('home-confirm-modal').style.display = 'none';
+  // もしゲームプレイ画面が表示中ならタイマーを再開（残り時間はそのまま）
+  if (document.getElementById('game-screen').style.display === 'block' && timeLimit > 0 && timeLeft > 0) {
+    timer = setInterval(() => {
+      timeLeft--;
+      updateTimerDisplay();
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        timeOut();
+      }
+    }, 1000);
+  }
+}
+
+function executeReturnHome() {
+  document.getElementById('home-confirm-modal').style.display = 'none';
+  returnToTitle();
 }
 
 function openStudyModal() {
