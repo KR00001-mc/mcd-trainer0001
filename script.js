@@ -381,6 +381,7 @@ function proceedToNext() {
 
 function showFinalResult() {
   document.getElementById('game-screen').style.display = 'none';
+  document.getElementById('ready-screen').style.display = 'none';
   document.getElementById('result-screen').style.display = 'block';
 
   const weaknessDiv = document.getElementById('weakness-text');
@@ -435,22 +436,22 @@ function showFinalResult() {
 
 function returnToTitle() {
   clearInterval(timer);
+  // 全てのゲーム関連画面を確実に隠し、スタート画面だけを表示する
   document.getElementById('game-screen').style.display = 'none';
   document.getElementById('ready-screen').style.display = 'none';
   document.getElementById('result-screen').style.display = 'none';
+  document.getElementById('home-confirm-modal').style.display = 'none';
   document.getElementById('start-screen').style.display = 'block';
 }
 
 // ホームに戻る確認モーダルの制御
 function confirmReturnHome() {
-  // プレイ中やカウントダウン中のタイマーを一時停止
   clearInterval(timer);
   document.getElementById('home-confirm-modal').style.display = 'flex';
 }
 
 function closeHomeConfirmModal() {
   document.getElementById('home-confirm-modal').style.display = 'none';
-  // もしゲームプレイ画面が表示中ならタイマーを再開（残り時間はそのまま）
   if (document.getElementById('game-screen').style.display === 'block' && timeLimit > 0 && timeLeft > 0) {
     timer = setInterval(() => {
       timeLeft--;
