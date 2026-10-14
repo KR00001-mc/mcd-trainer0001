@@ -48,7 +48,7 @@ const hotCoffeeSizes = ['M', 'S'];
 
 // 7. カフェラテ系 (M, S)
 const latteProducts = [
-  { base: 'ホットカフェラテ', required: ['シュガー', 'マドラー'], note: 'シュガー / M / マドラーの代わりにシュガー・マドラー' },
+  { base: 'ホットカフェラテ', required: ['シュガー', 'マドラー'], note: 'シュガー / マドラー' },
   { base: 'ホットキャラメルラテ', required: ['マドラー'], note: 'マドラーのみ' },
   { base: 'アイスカフェラテ', required: ['ガムシロップ', 'ストロー'], note: 'ガムシロップ / ストロー' },
   { base: 'アイスキャラメルラテ', required: ['ストロー'], note: 'ストローのみ' }
@@ -84,15 +84,14 @@ let score = 0;
 let timeLimit = 0;
 let timer = null;
 let timeLeft = 0;
+let sessionQuestions = [];
 let wrongItems = [];
 let isMarathon = false;
 let marathonStreak = 0;
 
-// 完全ランダムで1問のドリンク・フードを生成する関数
 function getRandomProduct() {
   const randGroup = Math.floor(Math.random() * 8);
 
-  // 0: コールドドリンク (各種×L/M/S)
   if (randGroup === 0) {
     const name = coldDrinksBase[Math.floor(Math.random() * coldDrinksBase.length)];
     const size = coldDrinkSizes[Math.floor(Math.random() * coldDrinkSizes.length)];
@@ -102,9 +101,7 @@ function getRandomProduct() {
       required: [],
       note: 'コンディメントなし'
     };
-  }
-  // 1: ハッピーセットドリンク
-  else if (randGroup === 1) {
+  } else if (randGroup === 1) {
     const name = happySetDrinksBase[Math.floor(Math.random() * happySetDrinksBase.length)];
     return {
       name: `${name} (S)`,
@@ -112,13 +109,9 @@ function getRandomProduct() {
       required: ['フレキシブルストロー'],
       note: 'フレキシブルストローのみ'
     };
-  }
-  // 2: ホットティー
-  else if (randGroup === 2) {
+  } else if (randGroup === 2) {
     return hotTeaProducts[Math.floor(Math.random() * hotTeaProducts.length)];
-  }
-  // 3: アイスティー (各種×L/M/S)
-  else if (randGroup === 3) {
+  } else if (randGroup === 3) {
     const tea = iceTeaTypes[Math.floor(Math.random() * iceTeaTypes.length)];
     const size = iceTeaSizes[Math.floor(Math.random() * iceTeaSizes.length)];
     return {
@@ -127,9 +120,7 @@ function getRandomProduct() {
       required: tea.required,
       note: tea.note
     };
-  }
-  // 4: アイスコーヒー (L/M/S)
-  else if (randGroup === 4) {
+  } else if (randGroup === 4) {
     const size = iceCoffeeSizes[Math.floor(Math.random() * iceCoffeeSizes.length)];
     return {
       name: `アイスコーヒー (${size})`,
@@ -137,9 +128,7 @@ function getRandomProduct() {
       required: ['マドラー', 'ミルク', 'ガムシロップ'],
       note: 'マドラー / ミルク / ガムシロップ'
     };
-  }
-  // 5: ホットコーヒー / カフェラテ系
-  else if (randGroup === 5) {
+  } else if (randGroup === 5) {
     if (Math.random() < 0.5) {
       const size = hotCoffeeSizes[Math.floor(Math.random() * hotCoffeeSizes.length)];
       return {
@@ -158,15 +147,39 @@ function getRandomProduct() {
         note: item.note
       };
     }
-  }
-  // 6: シェイク・フロート
-  else if (randGroup === 6) {
+  } else if (randGroup === 6) {
     return specialDrinkProducts[Math.floor(Math.random() * specialDrinkProducts.length)];
-  }
-  // 7: サイド・フード
-  else {
+  } else {
     return foodProducts[Math.floor(Math.random() * foodProducts.length)];
   }
+}
+
+function generateSessionQueue(count) {
+  sessionQuestions = [];
+  // コンディメントなしの割合を5問中0〜1問（約20%）に減らす
+  const noCondimentCount = Math.random() < 0.6 ? 1 : 0; 
+  const withCondimentCount = count - noCondimentCount;
+
+  for (let i = 0; i < withCondimentCount; i++) {
+    let prod;
+    do {
+      prod = getRandomProduct();
+    } while (prod.required.length === 0);
+    sessionQuestions.push(prod);
+  }
+
+  for (let i = 0; i < noCondimentCount; i++) {
+    const name = coldDrinksBase[Math.floor(Math.random() * coldDrinksBase.length)];
+    const size = coldDrinkSizes[Math.floor(Math.random() * coldDrinkSizes.length)];
+    sessionQuestions.push({
+      name: `${name} (${size})`,
+      category: 'コールドドリンク',
+      required: [],
+      note: 'コンディメントなし'
+    });
+  }
+
+  sessionQuestions.sort(() => 0.5 - Math.random());
 }
 
 function startGame(level) {
@@ -180,6 +193,7 @@ function startGame(level) {
   questionIndex = 0;
   score = 0;
   wrongItems = [];
+  generateSessionQueue(5);
 
   document.getElementById('start-screen').style.display = 'none';
   document.getElementById('result-screen').style.display = 'none';
@@ -231,7 +245,11 @@ function nextProduct() {
   timeLeft = timeLimit;
   updateTimerDisplay();
 
-  currentProduct = getRandomProduct();
+  if (isMarathon) {
+    currentProduct = getRandomProduct();
+  } else {
+    currentProduct = sessionQuestions[questionIndex];
+  }
 
   document.getElementById('product-name').textContent = currentProduct.name;
   
@@ -268,7 +286,7 @@ function updateTimerDisplay() {
 
 function timeOut() {
   if (isMarathon) {
-    wrongItems = [currentProduct];
+    wrongItems = [{ qNum: 1, product: currentProduct }];
     const resultDiv = document.getElementById('result-message');
     resultDiv.className = 'result-area result-error';
     resultDiv.innerHTML = `時間切れ！ゲームオーバー<br>正解: ${currentProduct.note}`;
@@ -276,7 +294,7 @@ function timeOut() {
       showFinalResult();
     }, 2000);
   } else {
-    wrongItems.push(currentProduct);
+    wrongItems.push({ qNum: questionIndex + 1, product: currentProduct });
     const resultDiv = document.getElementById('result-message');
     resultDiv.className = 'result-area result-error';
     resultDiv.innerHTML = `時間切れ<br>正解: ${currentProduct.note}`;
@@ -347,7 +365,7 @@ function checkAnswer() {
     }, 1500);
 
   } else {
-    wrongItems.push(currentProduct);
+    wrongItems.push({ qNum: questionIndex + 1, product: currentProduct });
     resultDiv.className = 'result-area result-error';
     resultDiv.innerHTML = `不合格<br>理由: ${reason}<br>正解: ${currentProduct.note}`;
     
@@ -387,8 +405,8 @@ function showFinalResult() {
       adviceHTML += '間違えてしまった問題の正解<br><div style="margin-top: 8px; text-align: left; margin-bottom: 15px;">';
       wrongItems.forEach((item) => {
         adviceHTML += `<div style="background: #fff5f5; border-left: 4px solid #da291c; padding: 8px; margin-bottom: 8px; border-radius: 4px;">`;
-        adviceHTML += `<strong>${item.name}</strong><br>`;
-        adviceHTML += `<span style="color: #2e7d32;">正解: ${item.note}</span>`;
+        adviceHTML += `<strong>${item.product.name}</strong><br>`;
+        adviceHTML += `<span style="color: #2e7d32;">正解: ${item.product.note}</span>`;
         adviceHTML += `</div>`;
       });
       adviceHTML += '</div>';
@@ -413,10 +431,10 @@ function showFinalResult() {
       document.getElementById('result-title').textContent = 'ゲーム終了';
       
       let adviceHTML = '間違えた問題と正解の確認<br><div style="margin-top: 8px; text-align: left;">';
-      wrongItems.forEach((item, idx) => {
+      wrongItems.forEach((item) => {
         adviceHTML += `<div style="background: #fff5f5; border-left: 4px solid #da291c; padding: 8px; margin-bottom: 8px; border-radius: 4px;">`;
-        adviceHTML += `<strong>Q${idx + 1}. ${item.name}</strong><br>`;
-        adviceHTML += `<span style="color: #2e7d32;">正解: ${item.note}</span>`;
+        adviceHTML += `<strong>Q${item.qNum}. ${item.product.name}</strong><br>`;
+        adviceHTML += `<span style="color: #2e7d32;">正解: ${item.product.note}</span>`;
         adviceHTML += `</div>`;
       });
       adviceHTML += '</div>';
@@ -433,7 +451,6 @@ function returnToTitle() {
   document.getElementById('start-screen').style.display = 'block';
 }
 
-// 勉強用早見表（M等の余計な文字を削除したクリーンな表示）
 function openStudyModal() {
   const modalBody = document.getElementById('study-list');
   modalBody.innerHTML = '';
