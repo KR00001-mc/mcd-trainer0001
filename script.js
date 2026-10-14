@@ -1,42 +1,80 @@
-const allProducts = [
-  // ホットティー系
-  { category: 'ホットティー (いずれも M or S)', name: 'ホットストレートティー (S)', required: ['ティーバッグ', 'シュガー', 'マドラー'], note: 'ティーバッグ / シュガー / マドラー' },
-  { category: 'ホットティー (いずれも M or S)', name: 'ホットレモンティー (S)', required: ['ティーバッグ', 'シュガー', 'マドラー', 'リキッドレモン'], note: 'ティーバッグ / シュガー / マドラー / リキッドレモン' },
-  { category: 'ホットティー (いずれも M or S)', name: 'ホットミルクティー (S)', required: ['ティーバッグ', 'シュガー', 'マドラー', 'ミルク'], note: 'ティーバッグ / シュガー / マドラー / ミルク' },
-  { category: 'ホットティー (いずれも M or S)', name: 'ホットストレートティー (M)', required: ['ティーバッグ', 'ティーバッグ', 'シュガー', 'マドラー'], note: 'ティーバッグ2個 / シュガー / マドラー' },
-  { category: 'ホットティー (いずれも M or S)', name: 'ホットレモンティー (M)', required: ['ティーバッグ', 'ティーバッグ', 'シュガー', 'マドラー', 'リキッドレモン'], note: 'ティーバッグ2個 / シュガー / マドラー / リキッドレモン' },
-  { category: 'ホットティー (いずれも M or S)', name: 'ホットミルクティー (M)', required: ['ティーバッグ', 'ティーバッグ', 'シュガー', 'マドラー', 'ミルク'], note: 'ティーバッグ2個 / シュガー / マドラー / ミルク' },
-  
-  // アイスティー系
-  { category: 'アイスティー (いずれも L or M or S)', name: 'アイスストレートティー (M)', required: ['ガムシロップ', 'マドラー'], note: 'ガムシロップ / マドラー' },
-  { category: 'アイスティー (いずれも L or M or S)', name: 'アイスレモンティー (M)', required: ['ガムシロップ', 'マドラー', 'リキッドレモン'], note: 'ガムシロップ / マドラー / リキッドレモン' },
-  { category: 'アイスティー (いずれも L or M or S)', name: 'アイスミルクティー (M)', required: ['ガムシロップ', 'マドラー', 'ミルク'], note: 'ガムシロップ / マドラー / ミルク' },
+// --- 実際のメニュー構成に基づく全商品データ ---
 
-  // コーヒー・ラテ系
-  { category: 'アイスコーヒー (L or M or S)', name: 'アイスコーヒー (M)', required: ['マドラー', 'ミルク', 'ガムシロップ'], note: 'マドラー / ミルク / ガムシロップ' },
-  { category: 'ホットコーヒー (M or S)', name: 'ホットコーヒー (M)', required: ['シュガー', 'マドラー', 'ミルク'], note: 'シュガー / マドラー / ミルク' },
-  { category: 'ホットカフェラテ (M or S)', name: 'ホットカフェラテ (M)', required: ['シュガー', 'マドラー'], note: 'シュガー / マドラー' },
-  { category: 'ホットキャラメルラテ (M or S)', name: 'ホットキャラメルラテ (M)', required: ['マドラー'], note: 'マドラーのみ' },
-  { category: 'アイスカフェラテ (M or S)', name: 'アイスカフェラテ (M)', required: ['ガムシロップ', 'ストロー'], note: 'ガムシロップ / ストロー' },
-  { category: 'アイスキャラメルラテ (M or S)', name: 'アイスキャラメルラテ (M)', required: ['ストロー'], note: 'ストローのみ' },
+// 1. コールドドリンク各種（コンディメントなし・L, M, Sサイズがランダムに出現）
+const coldDrinksBase = [
+  'コカ・コーラ',
+  'コカ・コーラ ゼロ',
+  'スプライト',
+  'ファンタ メロン',
+  'ファンタ グレープ',
+  'Qoo すっきり白ぶどう',
+  '爽健美茶',
+  '野菜生活100',
+  'ミニッツメイド オレンジ'
+];
+const coldDrinkSizes = ['L', 'M', 'S'];
 
-  // 特殊ドリンク
-  { category: 'マックシェイク・フロート', name: 'マックシェイク バニラ (M)', required: ['ストロー'], note: 'ストローのみ' },
-  { category: 'マックシェイク・フロート', name: 'マックフロート', required: ['スプーンストロー'], note: 'スプーンストローのみ' },
-
-  // サイド・フード
-  { category: 'サイド・フード', name: 'サイドサラダ', required: ['フォーク', 'ごまドレッシング'], note: 'フォーク / ごまドレッシング' },
-  { category: 'サイド・フード', name: 'えだまめコーン', required: ['スプーン'], note: 'スプーンのみ' },
-  { category: 'サイド・フード', name: 'チキンナゲット 5ピース', required: ['ナゲットソース'], note: 'ナゲットソースのみ' },
-  { category: 'サイド・フード', name: 'チキンナゲット 15ピース', required: ['ナゲットソース', 'ナゲットソース', 'ナゲットソース'], note: 'ナゲットソース / ナゲットソース / ナゲットソース' },
-  { category: 'サイド・フード', name: 'プチパンケーキ', required: ['フォーク', 'りんご＆クリーム'], note: 'フォーク / りんご＆クリーム' },
-  { category: 'サイド・フード', name: 'シャカチキ', required: ['チェダーチーズ味粉末'], note: 'チェダーチーズ味粉末のみ' },
-  { category: 'サイド・フード', name: 'ホットケーキ', required: ['ナイフ＆フォーク', 'バター', 'ホットケーキシロップ'], note: 'ナイフ＆フォーク / バター / ホットケーキシロップ' }
+// 2. ハッピーセット用コールドドリンク（Sサイズ・フレキシブルストロー）
+const happySetDrinksBase = [
+  'ハッピーセット ミルク',
+  'ハッピーセット 爽健美茶',
+  'ハッピーセット ミニッツメイド オレンジ',
+  'ハッピーセット 野菜生活100'
 ];
 
-const noCondimentsProducts = [
-  { category: 'コールドドリンク (L or M or S)', name: 'コールドドリンク各種', required: [], note: 'コンディメントなし' },
-  { category: 'ハッピーセット用ドリンク (S)', name: 'ハッピーセット用コールドドリンク (S)', required: ['フレキシブルストロー'], note: 'フレキシブルストローのみ' }
+// 3. ホットティー (S, M)
+const hotTeaProducts = [
+  { name: 'ホットストレートティー (S)', category: 'ホットティー', required: ['ティーバッグ', 'シュガー', 'マドラー'], note: 'ティーバッグ / シュガー / マドラー' },
+  { name: 'ホットレモンティー (S)', category: 'ホットティー', required: ['ティーバッグ', 'シュガー', 'マドラー', 'リキッドレモン'], note: 'ティーバッグ / シュガー / マドラー / リキッドレモン' },
+  { name: 'ホットミルクティー (S)', category: 'ホットティー', required: ['ティーバッグ', 'シュガー', 'マドラー', 'ミルク'], note: 'ティーバッグ / シュガー / マドラー / ミルク' },
+  { name: 'ホットストレートティー (M)', category: 'ホットティー', required: ['ティーバッグ', 'ティーバッグ', 'シュガー', 'マドラー'], note: 'ティーバッグ2個 / シュガー / マドラー' },
+  { name: 'ホットレモンティー (M)', category: 'ホットティー', required: ['ティーバッグ', 'ティーバッグ', 'シュガー', 'マドラー', 'リキッドレモン'], note: 'ティーバッグ2個 / シュガー / マドラー / リキッドレモン' },
+  { name: 'ホットミルクティー (M)', category: 'ホットティー', required: ['ティーバッグ', 'ティーバッグ', 'シュガー', 'マドラー', 'ミルク'], note: 'ティーバッグ2個 / シュガー / マドラー / ミルク' }
+];
+
+// 4. アイスティー (L, M, S)
+const iceTeaTypes = [
+  { base: 'アイスストレートティー', required: ['ガムシロップ', 'マドラー'], note: 'ガムシロップ / マドラー' },
+  { base: 'アイスレモンティー', required: ['ガムシロップ', 'マドラー', 'リキッドレモン'], note: 'ガムシロップ / マドラー / リキッドレモン' },
+  { base: 'アイスミルクティー', required: ['ガムシロップ', 'マドラー', 'ミルク'], note: 'ガムシロップ / マドラー / ミルク' }
+];
+const iceTeaSizes = ['L', 'M', 'S'];
+
+// 5. アイスコーヒー (L, M, S)
+const iceCoffeeSizes = ['L', 'M', 'S'];
+
+// 6. ホットコーヒー (M, S)
+const hotCoffeeSizes = ['M', 'S'];
+
+// 7. カフェラテ系 (M, S)
+const latteProducts = [
+  { base: 'ホットカフェラテ', required: ['シュガー', 'マドラー'], note: 'シュガー / M / マドラーの代わりにシュガー・マドラー' },
+  { base: 'ホットキャラメルラテ', required: ['マドラー'], note: 'マドラーのみ' },
+  { base: 'アイスカフェラテ', required: ['ガムシロップ', 'ストロー'], note: 'ガムシロップ / ストロー' },
+  { base: 'アイスキャラメルラテ', required: ['ストロー'], note: 'ストローのみ' }
+];
+
+// 8. シェイク・フロート
+const specialDrinkProducts = [
+  { name: 'マックシェイク バニラ (S)', category: 'マックシェイク・フロート', required: ['ストロー'], note: 'ストローのみ' },
+  { name: 'マックシェイク バニラ (M)', category: 'マックシェイク・フロート', required: ['ストロー'], note: 'ストローのみ' },
+  { name: 'マックシェイク ストロベリー (S)', category: 'マックシェイク・フロート', required: ['ストロー'], note: 'ストローのみ' },
+  { name: 'マックシェイク ストロベリー (M)', category: 'マックシェイク・フロート', required: ['ストロー'], note: 'ストローのみ' },
+  { name: 'マックシェイク チョコレート (S)', category: 'マックシェイク・フロート', required: ['ストロー'], note: 'ストローのみ' },
+  { name: 'マックシェイク チョコレート (M)', category: 'マックシェイク・フロート', required: ['ストロー'], note: 'ストローのみ' },
+  { name: 'マックフロート コーラ', category: 'マックシェイク・フロート', required: ['スプーンストロー'], note: 'スプーンストローのみ' },
+  { name: 'マックフロート コーヒー', category: 'マックシェイク・フロート', required: ['スプーンストロー'], note: 'スプーンストローのみ' }
+];
+
+// 9. サイド・フード
+const foodProducts = [
+  { name: 'サイドサラダ', category: 'サイド・フード', required: ['フォーク', 'ごまドレッシング'], note: 'フォーク / ごまドレッシング' },
+  { name: 'えだまめコーン', category: 'サイド・フード', required: ['スプーン'], note: 'スプーンのみ' },
+  { name: 'チキンナゲット 5ピース', category: 'サイド・フード', required: ['ナゲットソース'], note: 'ナゲットソースのみ' },
+  { name: 'チキンナゲット 15ピース', category: 'サイド・フード', required: ['ナゲットソース', 'ナゲットソース', 'ナゲットソース'], note: 'ナゲットソース / ナゲットソース / ナゲットソース' },
+  { name: 'プチパンケーキ', category: 'サイド・フード', required: ['フォーク', 'りんご＆クリーム'], note: 'フォーク / りんご＆クリーム' },
+  { name: 'シャカチキ', category: 'サイド・フード', required: ['チェダーチーズ味粉末'], note: 'チェダーチーズ味粉末のみ' },
+  { name: 'ホットケーキ', category: 'サイド・フード', required: ['ナイフ＆フォーク', 'バター', 'ホットケーキシロップ'], note: 'ナイフ＆フォーク / バター / ホットケーキシロップ' }
 ];
 
 let currentProduct = null;
@@ -46,10 +84,90 @@ let score = 0;
 let timeLimit = 0;
 let timer = null;
 let timeLeft = 0;
-let sessionQuestions = [];
 let wrongItems = [];
 let isMarathon = false;
 let marathonStreak = 0;
+
+// 完全ランダムで1問のドリンク・フードを生成する関数
+function getRandomProduct() {
+  const randGroup = Math.floor(Math.random() * 8);
+
+  // 0: コールドドリンク (各種×L/M/S)
+  if (randGroup === 0) {
+    const name = coldDrinksBase[Math.floor(Math.random() * coldDrinksBase.length)];
+    const size = coldDrinkSizes[Math.floor(Math.random() * coldDrinkSizes.length)];
+    return {
+      name: `${name} (${size})`,
+      category: 'コールドドリンク',
+      required: [],
+      note: 'コンディメントなし'
+    };
+  }
+  // 1: ハッピーセットドリンク
+  else if (randGroup === 1) {
+    const name = happySetDrinksBase[Math.floor(Math.random() * happySetDrinksBase.length)];
+    return {
+      name: `${name} (S)`,
+      category: 'ハッピーセット用ドリンク',
+      required: ['フレキシブルストロー'],
+      note: 'フレキシブルストローのみ'
+    };
+  }
+  // 2: ホットティー
+  else if (randGroup === 2) {
+    return hotTeaProducts[Math.floor(Math.random() * hotTeaProducts.length)];
+  }
+  // 3: アイスティー (各種×L/M/S)
+  else if (randGroup === 3) {
+    const tea = iceTeaTypes[Math.floor(Math.random() * iceTeaTypes.length)];
+    const size = iceTeaSizes[Math.floor(Math.random() * iceTeaSizes.length)];
+    return {
+      name: `${tea.base} (${size})`,
+      category: 'アイスティー',
+      required: tea.required,
+      note: tea.note
+    };
+  }
+  // 4: アイスコーヒー (L/M/S)
+  else if (randGroup === 4) {
+    const size = iceCoffeeSizes[Math.floor(Math.random() * iceCoffeeSizes.length)];
+    return {
+      name: `アイスコーヒー (${size})`,
+      category: 'アイスコーヒー',
+      required: ['マドラー', 'ミルク', 'ガムシロップ'],
+      note: 'マドラー / ミルク / ガムシロップ'
+    };
+  }
+  // 5: ホットコーヒー / カフェラテ系
+  else if (randGroup === 5) {
+    if (Math.random() < 0.5) {
+      const size = hotCoffeeSizes[Math.floor(Math.random() * hotCoffeeSizes.length)];
+      return {
+        name: `ホットコーヒー (${size})`,
+        category: 'ホットコーヒー',
+        required: ['シュガー', 'マドラー', 'ミルク'],
+        note: 'シュガー / マドラー / ミルク'
+      };
+    } else {
+      const item = latteProducts[Math.floor(Math.random() * latteProducts.length)];
+      const size = Math.random() < 0.5 ? 'M' : 'S';
+      return {
+        name: `${item.base} (${size})`,
+        category: 'カフェラテ',
+        required: item.required,
+        note: item.note
+      };
+    }
+  }
+  // 6: シェイク・フロート
+  else if (randGroup === 6) {
+    return specialDrinkProducts[Math.floor(Math.random() * specialDrinkProducts.length)];
+  }
+  // 7: サイド・フード
+  else {
+    return foodProducts[Math.floor(Math.random() * foodProducts.length)];
+  }
+}
 
 function startGame(level) {
   isMarathon = false;
@@ -62,7 +180,6 @@ function startGame(level) {
   questionIndex = 0;
   score = 0;
   wrongItems = [];
-  generateSessionQueue(5);
 
   document.getElementById('start-screen').style.display = 'none';
   document.getElementById('result-screen').style.display = 'none';
@@ -79,31 +196,8 @@ function startMarathonMode() {
   document.getElementById('start-screen').style.display = 'none';
   document.getElementById('result-screen').style.display = 'none';
   
-  loadNextMarathonQuestion();
+  currentProduct = getRandomProduct();
   startReadyCountdown();
-}
-
-function generateSessionQueue(count) {
-  sessionQuestions = [];
-  const noCondimentCount = Math.floor(Math.random() * 2) + 1;
-  const withCondimentCount = count - noCondimentCount;
-
-  let shuffledWith = [...allProducts].sort(() => 0.5 - Math.random());
-  for (let i = 0; i < withCondimentCount; i++) {
-    sessionQuestions.push(shuffledWith[i % shuffledWith.length]);
-  }
-
-  let shuffledNo = [...noCondimentsProducts].sort(() => 0.5 - Math.random());
-  for (let i = 0; i < noCondimentCount; i++) {
-    sessionQuestions.push(shuffledNo[i % shuffledNo.length]);
-  }
-
-  sessionQuestions.sort(() => 0.5 - Math.random());
-}
-
-function loadNextMarathonQuestion() {
-  const pool = [...allProducts, ...noCondimentsProducts];
-  currentProduct = pool[Math.floor(Math.random() * pool.length)];
 }
 
 function startReadyCountdown() {
@@ -137,11 +231,7 @@ function nextProduct() {
   timeLeft = timeLimit;
   updateTimerDisplay();
 
-  if (isMarathon) {
-    loadNextMarathonQuestion();
-  } else {
-    currentProduct = sessionQuestions[questionIndex];
-  }
+  currentProduct = getRandomProduct();
 
   document.getElementById('product-name').textContent = currentProduct.name;
   
@@ -343,36 +433,112 @@ function returnToTitle() {
   document.getElementById('start-screen').style.display = 'block';
 }
 
+// 勉強用早見表（M等の余計な文字を削除したクリーンな表示）
 function openStudyModal() {
   const modalBody = document.getElementById('study-list');
   modalBody.innerHTML = '';
 
-  const combined = [...allProducts, ...noCondimentsProducts];
-  
-  const grouped = {};
-  combined.forEach(prod => {
-    if (!grouped[prod.category]) {
-      grouped[prod.category] = [];
+  const categories = [
+    {
+      title: 'ホットティー',
+      items: [
+        'ホットストレートティー (S) : ティーバッグ / シュガー / マドラー',
+        'ホットレモンティー (S) : ティーバッグ / シュガー / マドラー / リキッドレモン',
+        'ホットミルクティー (S) : ティーバッグ / シュガー / マドラー / ミルク',
+        'ホットストレートティー (M) : ティーバッグ2個 / シュガー / マドラー',
+        'ホットレモンティー (M) : ティーバッグ2個 / シュガー / マドラー / リキッドレモン',
+        'ホットミルクティー (M) : ティーバッグ2個 / シュガー / マドラー / ミルク'
+      ]
+    },
+    {
+      title: 'アイスティー',
+      items: [
+        'アイスストレートティー : ガムシロップ / マドラー',
+        'アイスレモンティー : ガムシロップ / マドラー / リキッドレモン',
+        'アイスミルクティー : ガムシロップ / マドラー / ミルク'
+      ]
+    },
+    {
+      title: 'アイスコーヒー',
+      items: [
+        'アイスコーヒー : マドラー / ミルク / ガムシロップ'
+      ]
+    },
+    {
+      title: 'ホットコーヒー',
+      items: [
+        'ホットコーヒー : シュガー / マドラー / ミルク'
+      ]
+    },
+    {
+      title: 'ホットカフェラテ',
+      items: [
+        'ホットカフェラテ : シュガー / マドラー'
+      ]
+    },
+    {
+      title: 'ホットキャラメルラテ',
+      items: [
+        'ホットキャラメルラテ : マドラーのみ'
+      ]
+    },
+    {
+      title: 'アイスカフェラテ',
+      items: [
+        'アイスカフェラテ : ガムシロップ / ストロー'
+      ]
+    },
+    {
+      title: 'アイスキャラメルラテ',
+      items: [
+        'アイスキャラメルラテ : ストローのみ'
+      ]
+    },
+    {
+      title: 'マックシェイク・フロート',
+      items: [
+        'マックシェイク : ストローのみ',
+        'マックフロート : スプーンストローのみ'
+      ]
+    },
+    {
+      title: 'サイド・フード',
+      items: [
+        'サイドサラダ : フォーク / ごまドレッシング',
+        'えだまめコーン : スプーンのみ',
+        'チキンナゲット 5ピース : ナゲットソースのみ',
+        'チキンナゲット 15ピース : ナゲットソース / ナゲットソース / ナゲットソース',
+        'プチパンケーキ : フォーク / りんご＆クリーム',
+        'シャカチキ : チェダーチーズ味粉末のみ',
+        'ホットケーキ : ナイフ＆フォーク / バター / ホットケーキシロップ'
+      ]
+    },
+    {
+      title: 'コールドドリンク',
+      items: [
+        'コーラ、スプライト、ファンタ、Qoo、爽健美茶、野菜生活、オレンジ等 : コンディメントなし'
+      ]
+    },
+    {
+      title: 'ハッピーセット用ドリンク',
+      items: [
+        'ハッピーセット用コールドドリンク (S) : フレキシブルストローのみ'
+      ]
     }
-    grouped[prod.category].push(prod);
-  });
+  ];
 
-  for (let cat in grouped) {
+  categories.forEach(cat => {
     const block = document.createElement('div');
     block.className = 'study-category-block';
     
-    let html = `<div class="study-category-title">${cat}</div>`;
-    if (cat.includes('コールドドリンク')) {
-      html += `<div class="study-item-row">・コーラ、スプライト、ファンタ、Qoo、爽健美茶、野菜生活、オレンジ等： コンディメントなし</div>`;
-    } else {
-      grouped[cat].forEach(item => {
-        html += `<div class="study-item-row">・${item.name}： ${item.note}</div>`;
-      });
-    }
+    let html = `<div class="study-category-title">📁 ${cat.title}</div>`;
+    cat.items.forEach(item => {
+      html += `<div class="study-item-row">・${item}</div>`;
+    });
     
     block.innerHTML = html;
     modalBody.appendChild(block);
-  }
+  });
 
   document.getElementById('study-modal').style.display = 'flex';
 }
