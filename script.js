@@ -1,6 +1,6 @@
 // --- 実際のメニュー構成に基づく全商品データ ---
 
-const coldDrinksBase = [
+const coldDrinksLMS = [
   'コカ・コーラ',
   'コカ・コーラ ゼロ',
   'スプライト',
@@ -8,8 +8,7 @@ const coldDrinksBase = [
   'ファンタ グレープ',
   'Qoo すっきり白ぶどう',
   '爽健美茶',
-  '野菜生活100',
-  'ミニッツメイド オレンジ'
+  '野菜生活100'
 ];
 const coldDrinkSizes = ['L', 'M', 'S'];
 
@@ -79,96 +78,114 @@ let wrongItems = [];
 let isMarathon = false;
 let marathonStreak = 0;
 
-function getRandomProduct() {
-  const randGroup = Math.floor(Math.random() * 8);
+// 直前のゲームで出題された問題名を記憶するセット
+let recentProductNames = new Set();
+// マラソンモード用の未出題プール
+let marathonPool = [];
 
-  if (randGroup === 0) {
-    const name = coldDrinksBase[Math.floor(Math.random() * coldDrinksBase.length)];
-    const size = coldDrinkSizes[Math.floor(Math.random() * coldDrinkSizes.length)];
-    return {
-      name: `${name} (${size})`,
-      category: 'コールドドリンク',
-      required: [],
-      note: 'コンディメントなし'
-    };
-  } else if (randGroup === 1) {
-    const name = happySetDrinksBase[Math.floor(Math.random() * happySetDrinksBase.length)];
-    return {
-      name: `${name} (S)`,
-      category: 'ハッピーセット用ドリンク',
-      required: ['フレキシブルストロー'],
-      note: 'フレキシブルストローのみ'
-    };
-  } else if (randGroup === 2) {
-    return hotTeaProducts[Math.floor(Math.random() * hotTeaProducts.length)];
-  } else if (randGroup === 3) {
-    const tea = iceTeaTypes[Math.floor(Math.random() * iceTeaTypes.length)];
-    const size = iceTeaSizes[Math.floor(Math.random() * iceTeaSizes.length)];
-    return {
-      name: `${tea.base} (${size})`,
-      category: 'アイスティー',
-      required: tea.required,
-      note: tea.note
-    };
-  } else if (randGroup === 4) {
-    const size = iceCoffeeSizes[Math.floor(Math.random() * iceCoffeeSizes.length)];
-    return {
-      name: `アイスコーヒー (${size})`,
-      category: 'アイスコーヒー',
-      required: ['マドラー', 'ミルク', 'ガムシロップ'],
-      note: 'マドラー / ミルク / ガムシロップ'
-    };
-  } else if (randGroup === 5) {
-    if (Math.random() < 0.5) {
-      const size = hotCoffeeSizes[Math.floor(Math.random() * hotCoffeeSizes.length)];
-      return {
-        name: `ホットコーヒー (${size})`,
-        category: 'ホットコーヒー',
-        required: ['シュガー', 'マドラー', 'ミルク'],
-        note: 'シュガー / マドラー / ミルク'
-      };
-    } else {
-      const item = latteProducts[Math.floor(Math.random() * latteProducts.length)];
-      const size = Math.random() < 0.5 ? 'M' : 'S';
-      return {
-        name: `${item.base} (${size})`,
-        category: 'カフェラテ',
-        required: item.required,
-        note: item.note
-      };
-    }
-  } else if (randGroup === 6) {
-    return specialDrinkProducts[Math.floor(Math.random() * specialDrinkProducts.length)];
-  } else {
-    return foodProducts[Math.floor(Math.random() * foodProducts.length)];
-  }
+// 全種類のマスタープールを生成する関数
+function getAllPossibleProducts() {
+  let list = [];
+
+  // コールドドリンク (LMS)
+  coldDrinksLMS.forEach(base => {
+    coldDrinkSizes.forEach(size => {
+      list.push({ name: `${base} (${size})`, category: 'コールドドリンク', required: [], note: 'コンディメントなし' });
+    });
+  });
+  // オレンジ (Sのみ)
+  list.push({ name: 'ミニッツメイド オレンジ (S)', category: 'コールドドリンク', required: [], note: 'コンディメントなし' });
+
+  // ハッピーセット
+  happySetDrinksBase.forEach(base => {
+    list.push({ name: `${base} (S)`, category: 'ハッピーセット用ドリンク', required: ['フレキシブルストロー'], note: 'フレキシブルストローのみ' });
+  });
+
+  // ホットティー
+  hotTeaProducts.forEach(p => list.push(p));
+
+  // アイスティー
+  iceTeaTypes.forEach(tea => {
+    iceTeaSizes.forEach(size => {
+      list.push({ name: `${tea.base} (${size})`, category: 'アイスティー', required: tea.required, note: tea.note });
+    });
+  });
+
+  // アイスコーヒー
+  iceCoffeeSizes.forEach(size => {
+    list.push({ name: `アイスコーヒー (${size})`, category: 'アイスコーヒー', required: ['マドラー', 'ミルク', 'ガムシロップ'], note: 'マドラー / ミルク / ガムシロップ' });
+  });
+
+  // ホットコーヒー
+  hotCoffeeSizes.forEach(size => {
+    list.push({ name: `ホットコーヒー (${size})`, category: 'ホットコーヒー', required: ['シュガー', 'マドラー', 'ミルク'], note: 'シュガー / マドラー / ミルク' });
+  });
+
+  // カフェラテ
+  latteProducts.forEach(item => {
+    ['M', 'S'].forEach(size => {
+      list.push({ name: `${item.base} (${size})`, category: 'カフェラテ', required: item.required, note: item.note });
+    });
+  });
+
+  // シェイク・フロート
+  specialDrinkProducts.forEach(p => list.push(p));
+
+  // フード
+  foodProducts.forEach(p => list.push(p));
+
+  return list;
 }
 
+// 通常モード用：直前の5問と被らないように5問を生成する
 function generateSessionQueue(count) {
-  sessionQuestions = [];
-  const noCondimentCount = Math.random() < 0.6 ? 1 : 0; 
-  const withCondimentCount = count - noCondimentCount;
-
-  for (let i = 0; i < withCondimentCount; i++) {
-    let prod;
-    do {
-      prod = getRandomProduct();
-    } while (prod.required.length === 0);
-    sessionQuestions.push(prod);
+  let allMaster = getAllPossibleProducts();
+  
+  // 直前のゲームで出題されていないもの、または全制覇してしまっている場合は全体から選ぶ
+  let available = allMaster.filter(p => !recentProductNames.has(p.name));
+  if (available.length < count) {
+    recentProductNames.clear();
+    available = allMaster;
   }
 
-  for (let i = 0; i < noCondimentCount; i++) {
-    const name = coldDrinksBase[Math.floor(Math.random() * coldDrinksBase.length)];
-    const size = coldDrinkSizes[Math.floor(Math.random() * coldDrinkSizes.length)];
-    sessionQuestions.push({
-      name: `${name} (${size})`,
-      category: 'コールドドリンク',
-      required: [],
-      note: 'コンディメントなし'
-    });
+  // シャッフル
+  available.sort(() => 0.5 - Math.random());
+
+  // コンディメントなしが1問含まれるように調整
+  let noCondiCandidates = available.filter(p => p.required.length === 0);
+  let withCondiCandidates = available.filter(p => p.required.length > 0);
+
+  sessionQuestions = [];
+  const needNoCondi = Math.random() < 0.6 && noCondiCandidates.length > 0;
+  const noCondiCount = needNoCondi ? 1 : 0;
+  const withCondiCount = count - noCondiCount;
+
+  for (let i = 0; i < withCondiCount && withCondiCandidates.length > 0; i++) {
+    sessionQuestions.push(withCondiCandidates.pop());
+  }
+  for (let i = 0; i < noCondiCount && noCondiCandidates.length > 0; i++) {
+    sessionQuestions.push(noCondiCandidates.pop());
+  }
+
+  // 足りない分があれば追加
+  while (sessionQuestions.length < count && available.length > 0) {
+    sessionQuestions.push(available.pop());
   }
 
   sessionQuestions.sort(() => 0.5 - Math.random());
+
+  // 今回の出題名を記録
+  recentProductNames.clear();
+  sessionQuestions.forEach(p => recentProductNames.add(p.name));
+}
+
+// マラソンモード用：全種類を出し切るまで重複させないプール管理
+function getNextMarathonProduct() {
+  if (marathonPool.length === 0) {
+    marathonPool = getAllPossibleProducts();
+    marathonPool.sort(() => 0.5 - Math.random());
+  }
+  return marathonPool.pop();
 }
 
 function startGame(level) {
@@ -195,11 +212,12 @@ function startMarathonMode() {
   timeLimit = 10;
   marathonStreak = 0;
   wrongItems = [];
+  marathonPool = []; // プールをリセット
 
   document.getElementById('start-screen').style.display = 'none';
   document.getElementById('result-screen').style.display = 'none';
   
-  currentProduct = getRandomProduct();
+  currentProduct = getNextMarathonProduct();
   startReadyCountdown();
 }
 
@@ -235,7 +253,7 @@ function nextProduct() {
   updateTimerDisplay();
 
   if (isMarathon) {
-    currentProduct = getRandomProduct();
+    currentProduct = getNextMarathonProduct();
   } else {
     currentProduct = sessionQuestions[questionIndex];
   }
@@ -436,7 +454,6 @@ function showFinalResult() {
 
 function returnToTitle() {
   clearInterval(timer);
-  // 全てのゲーム関連画面を確実に隠し、スタート画面だけを表示する
   document.getElementById('game-screen').style.display = 'none';
   document.getElementById('ready-screen').style.display = 'none';
   document.getElementById('result-screen').style.display = 'none';
@@ -444,7 +461,6 @@ function returnToTitle() {
   document.getElementById('start-screen').style.display = 'block';
 }
 
-// ホームに戻る確認モーダルの制御
 function confirmReturnHome() {
   clearInterval(timer);
   document.getElementById('home-confirm-modal').style.display = 'flex';
@@ -551,7 +567,8 @@ function openStudyModal() {
     {
       title: 'コールドドリンク',
       items: [
-        'コーラ、スプライト、ファンタ、Qoo、爽健美茶、野菜生活、オレンジ等 : コンディメントなし'
+        'コーラ、スプライト、ファンタ、Qoo、爽健美茶、野菜生活等 (L, M, S) : コンディメントなし',
+        'ミニッツメイド オレンジ (S) : コンディメントなし'
       ]
     },
     {
