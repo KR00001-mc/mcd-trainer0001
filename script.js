@@ -12,8 +12,12 @@ const coldDrinksLMS = [
 ];
 const coldDrinkSizes = ['L', 'M', 'S'];
 
-const happySetDrinksBase = [
+// ハッピーセット用：紙パック商品はストロー付きのためコンディメントなし、カップ商品はフレキシブルストロー
+const happySetPaperCartonDrinks = [
   'ハッピーセット ミルク',
+  'ハッピーセット ミニッツメイド アップル'
+];
+const happySetCupDrinks = [
   'ハッピーセット 爽健美茶',
   'ハッピーセット ミニッツメイド オレンジ',
   'ハッピーセット 野菜生活100'
@@ -78,12 +82,9 @@ let wrongItems = [];
 let isMarathon = false;
 let marathonStreak = 0;
 
-// 直前のゲームで出題された問題名を記憶するセット
 let recentProductNames = new Set();
-// マラソンモード用の未出題プール
 let marathonPool = [];
 
-// 全種類のマスタープールを生成する関数
 function getAllPossibleProducts() {
   let list = [];
 
@@ -93,11 +94,13 @@ function getAllPossibleProducts() {
       list.push({ name: `${base} (${size})`, category: 'コールドドリンク', required: [], note: 'コンディメントなし' });
     });
   });
-  // オレンジ (Sのみ)
   list.push({ name: 'ミニッツメイド オレンジ (S)', category: 'コールドドリンク', required: [], note: 'コンディメントなし' });
 
-  // ハッピーセット
-  happySetDrinksBase.forEach(base => {
+  // ハッピーセット（紙パック＝付属品なし、カップ＝フレキシブルストロー）
+  happySetPaperCartonDrinks.forEach(base => {
+    list.push({ name: `${base} (S)`, category: 'ハッピーセット用ドリンク', required: [], note: 'コンディメントなし' });
+  });
+  happySetCupDrinks.forEach(base => {
     list.push({ name: `${base} (S)`, category: 'ハッピーセット用ドリンク', required: ['フレキシブルストロー'], note: 'フレキシブルストローのみ' });
   });
 
@@ -137,21 +140,17 @@ function getAllPossibleProducts() {
   return list;
 }
 
-// 通常モード用：直前の5問と被らないように5問を生成する
 function generateSessionQueue(count) {
   let allMaster = getAllPossibleProducts();
   
-  // 直前のゲームで出題されていないもの、または全制覇してしまっている場合は全体から選ぶ
   let available = allMaster.filter(p => !recentProductNames.has(p.name));
   if (available.length < count) {
     recentProductNames.clear();
     available = allMaster;
   }
 
-  // シャッフル
   available.sort(() => 0.5 - Math.random());
 
-  // コンディメントなしが1問含まれるように調整
   let noCondiCandidates = available.filter(p => p.required.length === 0);
   let withCondiCandidates = available.filter(p => p.required.length > 0);
 
@@ -167,19 +166,16 @@ function generateSessionQueue(count) {
     sessionQuestions.push(noCondiCandidates.pop());
   }
 
-  // 足りない分があれば追加
   while (sessionQuestions.length < count && available.length > 0) {
     sessionQuestions.push(available.pop());
   }
 
   sessionQuestions.sort(() => 0.5 - Math.random());
 
-  // 今回の出題名を記録
   recentProductNames.clear();
   sessionQuestions.forEach(p => recentProductNames.add(p.name));
 }
 
-// マラソンモード用：全種類を出し切るまで重複させないプール管理
 function getNextMarathonProduct() {
   if (marathonPool.length === 0) {
     marathonPool = getAllPossibleProducts();
@@ -212,7 +208,7 @@ function startMarathonMode() {
   timeLimit = 10;
   marathonStreak = 0;
   wrongItems = [];
-  marathonPool = []; // プールをリセット
+  marathonPool = [];
 
   document.getElementById('start-screen').style.display = 'none';
   document.getElementById('result-screen').style.display = 'none';
@@ -574,7 +570,8 @@ function openStudyModal() {
     {
       title: 'ハッピーセット用ドリンク',
       items: [
-        'ハッピーセット用コールドドリンク (S) : フレキシブルストローのみ'
+        'ハッピーセット 爽健美茶 / オレンジ / 野菜生活100 (S) : フレキシブルストローのみ',
+        'ハッピーセット ミルク / アップル (S) : コンディメントなし（紙パックのためストロー付属）'
       ]
     }
   ];
