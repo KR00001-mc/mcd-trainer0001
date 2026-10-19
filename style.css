@@ -41,7 +41,11 @@ header h1 {
   padding: 20px 0;
 }
 
-.study-mode-box {
+.top-nav-box {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
   margin-bottom: 25px;
 }
 
@@ -49,8 +53,8 @@ header h1 {
   background-color: #0288d1;
   color: white;
   border: none;
-  padding: 12px 20px;
-  font-size: 1rem;
+  padding: 10px 18px;
+  font-size: 0.95rem;
   font-weight: bold;
   border-radius: 25px;
   cursor: pointer;
@@ -60,6 +64,23 @@ header h1 {
 
 .btn-study:hover {
   background-color: #01579b;
+}
+
+.btn-admin {
+  background-color: #37474f;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  font-size: 0.95rem;
+  font-weight: bold;
+  border-radius: 25px;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: 0.2s;
+}
+
+.btn-admin:hover {
+  background-color: #212121;
 }
 
 .level-buttons {
@@ -115,6 +136,17 @@ header h1 {
   background-color: #b71c1c !important;
 }
 
+.level-multi {
+  background-color: #673ab7 !important;
+  color: white !important;
+  font-size: 1.15rem !important;
+  box-shadow: 0 4px 8px rgba(103,58,183,0.3);
+}
+
+.level-multi:hover {
+  background-color: #512da8 !important;
+}
+
 .btn-home-top {
   background-color: #e0e0e0;
   color: #333;
@@ -154,10 +186,11 @@ header h1 {
 }
 
 .product-title {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   font-weight: bold;
   color: #da291c;
   margin: 10px 0 5px 0;
+  line-height: 1.5;
 }
 
 .btn-primary {
@@ -182,6 +215,7 @@ header h1 {
   font-size: 0.8rem;
   color: #666;
   margin-bottom: 8px;
+  line-height: 1.4;
 }
 
 .condiment-grid {
@@ -350,4 +384,53 @@ header h1 {
   margin-left: 10px;
   margin-bottom: 6px;
   line-height: 1.4;
+}
+
+/* 管理者ログ表示カード */
+.admin-log-card {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.admin-log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+  color: #555;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.admin-log-mode {
+  background: #37474f;
+  color: white;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.admin-log-qitem {
+  font-size: 0.85rem;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  border-radius: 4px;
+}
+
+.q-success {
+  background: #e8f5e9;
+  border-left: 3px solid #2e7d32;
+}
+
+.q-error {
+  background: #ffebee;
+  border-left: 3px solid #c62828;
 }

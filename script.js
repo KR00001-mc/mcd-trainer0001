@@ -12,7 +12,6 @@ const coldDrinksLMS = [
 ];
 const coldDrinkSizes = ['L', 'M', 'S'];
 
-// ハッピーセット用：紙パック商品はストロー付きのためコンディメントなし、カップ商品はフレキシブルストロー
 const happySetPaperCartonDrinks = [
   'ハッピーセット ミルク',
   'ハッピーセット ミニッツメイド アップル'
@@ -78,9 +77,12 @@ let timeLimit = 0;
 let timer = null;
 let timeLeft = 0;
 let sessionQuestions = [];
+let playedQuestionLog = []; // 今回のプレイ全問の詳細ログ
 let wrongItems = [];
 let isMarathon = false;
+let isMultiMode = false;
 let marathonStreak = 0;
+let currentModeName = "";
 
 let recentProductNames = new Set();
 let marathonPool = [];
@@ -88,7 +90,6 @@ let marathonPool = [];
 function getAllPossibleProducts() {
   let list = [];
 
-  // コールドドリンク (LMS)
   coldDrinksLMS.forEach(base => {
     coldDrinkSizes.forEach(size => {
       list.push({ name: `${base} (${size})`, category: 'コールドドリンク', required: [], note: 'コンディメントなし' });
@@ -96,7 +97,6 @@ function getAllPossibleProducts() {
   });
   list.push({ name: 'ミニッツメイド オレンジ (S)', category: 'コールドドリンク', required: [], note: 'コンディメントなし' });
 
-  // ハッピーセット（紙パック＝付属品なし、カップ＝フレキシブルストロー）
   happySetPaperCartonDrinks.forEach(base => {
     list.push({ name: `${base} (S)`, category: 'ハッピーセット用ドリンク', required: [], note: 'コンディメントなし' });
   });
@@ -104,37 +104,29 @@ function getAllPossibleProducts() {
     list.push({ name: `${base} (S)`, category: 'ハッピーセット用ドリンク', required: ['フレキシブルストロー'], note: 'フレキシブルストローのみ' });
   });
 
-  // ホットティー
   hotTeaProducts.forEach(p => list.push(p));
 
-  // アイスティー
   iceTeaTypes.forEach(tea => {
     iceTeaSizes.forEach(size => {
       list.push({ name: `${tea.base} (${size})`, category: 'アイスティー', required: tea.required, note: tea.note });
     });
   });
 
-  // アイスコーヒー
   iceCoffeeSizes.forEach(size => {
     list.push({ name: `アイスコーヒー (${size})`, category: 'アイスコーヒー', required: ['マドラー', 'ミルク', 'ガムシロップ'], note: 'マドラー / ミルク / ガムシロップ' });
   });
 
-  // ホットコーヒー
   hotCoffeeSizes.forEach(size => {
     list.push({ name: `ホットコーヒー (${size})`, category: 'ホットコーヒー', required: ['シュガー', 'マドラー', 'ミルク'], note: 'シュガー / マドラー / ミルク' });
   });
 
-  // カフェラテ
   latteProducts.forEach(item => {
     ['M', 'S'].forEach(size => {
       list.push({ name: `${item.base} (${size})`, category: 'カフェラテ', required: item.required, note: item.note });
     });
   });
 
-  // シェイク・フロート
   specialDrinkProducts.forEach(p => list.push(p));
-
-  // フード
   foodProducts.forEach(p => list.push(p));
 
   return list;
@@ -176,6 +168,38 @@ function generateSessionQueue(count) {
   sessionQuestions.forEach(p => recentProductNames.add(p.name));
 }
 
+function generateMultiSessionQueue() {
+  sessionQuestions = [];
+  const allMaster = getAllPossibleProducts();
+  const itemCounts = [2, 2, 2, 3, 4];
+
+  itemCounts.forEach(itemNum => {
+    let selectedItems = [];
+    let pool = [...allMaster].sort(() => 0.5 - Math.random());
+
+    for (let i = 0; i < itemNum; i++) {
+      selectedItems.push(pool.pop());
+    }
+
+    const names = selectedItems.map(item => `・${item.name}`);
+    let combinedRequired = [];
+    selectedItems.forEach(item => {
+      combinedRequired = combinedRequired.concat(item.required);
+    });
+
+    let noteText = combinedRequired.length === 0 ? 'コンディメントなし' : combinedRequired.join(' / ');
+
+    sessionQuestions.push({
+      name: names.join('<br>'),
+      displayName: names.join(' + ').replace(/・/g, ''),
+      category: '複数品注文',
+      required: combinedRequired,
+      note: noteText,
+      items: selectedItems
+    });
+  });
+}
+
 function getNextMarathonProduct() {
   if (marathonPool.length === 0) {
     marathonPool = getAllPossibleProducts();
@@ -186,16 +210,36 @@ function getNextMarathonProduct() {
 
 function startGame(level) {
   isMarathon = false;
-  if (level === 0) timeLimit = 0;
-  if (level === 1) timeLimit = 15;
-  if (level === 2) timeLimit = 10;
-  if (level === 3) timeLimit = 7;
-  if (level === 4) timeLimit = 5;
+  isMultiMode = false;
+  if (level === 0) { timeLimit = 0; currentModeName = "レベル0 (無制限)"; }
+  if (level === 1) { timeLimit = 15; currentModeName = "レベル1 (15秒)"; }
+  if (level === 2) { timeLimit = 10; currentModeName = "レベル2 (10秒)"; }
+  if (level === 3) { timeLimit = 7; currentModeName = "レベル3 (7秒)"; }
+  if (level === 4) { timeLimit = 5; currentModeName = "レベル4 (5秒)"; }
 
   questionIndex = 0;
   score = 0;
   wrongItems = [];
+  playedQuestionLog = [];
   generateSessionQueue(5);
+
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('result-screen').style.display = 'none';
+  
+  startReadyCountdown();
+}
+
+function startMultiMode() {
+  isMarathon = false;
+  isMultiMode = true;
+  timeLimit = 0;
+  currentModeName = "複数品モード";
+
+  questionIndex = 0;
+  score = 0;
+  wrongItems = [];
+  playedQuestionLog = [];
+  generateMultiSessionQueue();
 
   document.getElementById('start-screen').style.display = 'none';
   document.getElementById('result-screen').style.display = 'none';
@@ -205,10 +249,13 @@ function startGame(level) {
 
 function startMarathonMode() {
   isMarathon = true;
+  isMultiMode = false;
   timeLimit = 10;
   marathonStreak = 0;
   wrongItems = [];
+  playedQuestionLog = [];
   marathonPool = [];
+  currentModeName = "マラソンモード";
 
   document.getElementById('start-screen').style.display = 'none';
   document.getElementById('result-screen').style.display = 'none';
@@ -254,7 +301,7 @@ function nextProduct() {
     currentProduct = sessionQuestions[questionIndex];
   }
 
-  document.getElementById('product-name').textContent = currentProduct.name;
+  document.getElementById('product-name').innerHTML = currentProduct.name;
   
   clearSelection();
   const resultDiv = document.getElementById('result-message');
@@ -288,6 +335,14 @@ function updateTimerDisplay() {
 }
 
 function timeOut() {
+  playedQuestionLog.push({
+    qNum: isMarathon ? marathonStreak + 1 : questionIndex + 1,
+    name: currentProduct.displayName || currentProduct.name.replace(/<br>/g, ' / '),
+    correctNote: currentProduct.note,
+    isCorrect: false,
+    reason: "時間切れ"
+  });
+
   if (isMarathon) {
     wrongItems = [{ qNum: 1, product: currentProduct }];
     const resultDiv = document.getElementById('result-message');
@@ -351,6 +406,14 @@ function checkAnswer() {
     reason = '付属品の過不足または不要なアイテムがあります。';
   }
 
+  playedQuestionLog.push({
+    qNum: isMarathon ? marathonStreak + 1 : questionIndex + 1,
+    name: currentProduct.displayName || currentProduct.name.replace(/<br>/g, ' / '),
+    correctNote: currentProduct.note,
+    isCorrect: isCorrect,
+    reason: reason
+  });
+
   if (isCorrect) {
     score++;
     if (isMarathon) {
@@ -393,12 +456,20 @@ function proceedToNext() {
   }, 500);
 }
 
+function savePlayLogToStorage(logData) {
+  let logs = JSON.parse(localStorage.getItem('mcd_trainer_logs') || '[]');
+  logs.unshift(logData); // 新しいものを先頭に追加
+  if (logs.length > 100) logs.pop(); // 最大100件保存
+  localStorage.setItem('mcd_trainer_logs', JSON.stringify(logs));
+}
+
 function showFinalResult() {
   document.getElementById('game-screen').style.display = 'none';
   document.getElementById('ready-screen').style.display = 'none';
   document.getElementById('result-screen').style.display = 'block';
 
   const weaknessDiv = document.getElementById('weakness-text');
+  const nowStr = new Date().toLocaleString('ja-JP');
 
   if (isMarathon) {
     document.getElementById('result-title').textContent = 'マラソンモード終了';
@@ -409,7 +480,7 @@ function showFinalResult() {
       adviceHTML += '間違えてしまった問題の正解<br><div style="margin-top: 8px; text-align: left; margin-bottom: 15px;">';
       wrongItems.forEach((item) => {
         adviceHTML += `<div style="background: #fff5f5; border-left: 4px solid #da291c; padding: 8px; margin-bottom: 8px; border-radius: 4px;">`;
-        adviceHTML += `<strong>${item.product.name}</strong><br>`;
+        adviceHTML += `<strong>${item.product.displayName || item.product.name.replace(/<br>/g, ' / ')}</strong><br>`;
         adviceHTML += `<span style="color: #2e7d32;">正解: ${item.product.note}</span>`;
         adviceHTML += `</div>`;
       });
@@ -425,6 +496,14 @@ function showFinalResult() {
     }
     weaknessDiv.innerHTML = adviceHTML;
 
+    // 管理者用ログ保存（マラソン）
+    savePlayLogToStorage({
+      timestamp: nowStr,
+      mode: currentModeName,
+      resultText: `連続正解記録: ${marathonStreak} 問`,
+      questions: playedQuestionLog
+    });
+
   } else {
     document.getElementById('score-text').textContent = `5 問 中 ${score} 問 正解`;
 
@@ -437,7 +516,7 @@ function showFinalResult() {
       let adviceHTML = '間違えた問題と正解の確認<br><div style="margin-top: 8px; text-align: left;">';
       wrongItems.forEach((item) => {
         adviceHTML += `<div style="background: #fff5f5; border-left: 4px solid #da291c; padding: 8px; margin-bottom: 8px; border-radius: 4px;">`;
-        adviceHTML += `<strong>Q${item.qNum}. ${item.product.name}</strong><br>`;
+        adviceHTML += `<strong>Q${item.qNum}. ${item.product.displayName || item.product.name.replace(/<br>/g, ' / ')}</strong><br>`;
         adviceHTML += `<span style="color: #2e7d32;">正解: ${item.product.note}</span>`;
         adviceHTML += `</div>`;
       });
@@ -445,6 +524,14 @@ function showFinalResult() {
 
       weaknessDiv.innerHTML = adviceHTML;
     }
+
+    // 管理者用ログ保存（通常・複数品）
+    savePlayLogToStorage({
+      timestamp: nowStr,
+      mode: currentModeName,
+      resultText: `5問中 ${score}問 正解`,
+      questions: playedQuestionLog
+    });
   }
 }
 
@@ -479,6 +566,84 @@ function closeHomeConfirmModal() {
 function executeReturnHome() {
   document.getElementById('home-confirm-modal').style.display = 'none';
   returnToTitle();
+}
+
+// --- 管理者専用機能 ---
+
+function openAdminPassModal() {
+  document.getElementById('admin-pass-input').value = '';
+  document.getElementById('admin-pass-error').style.display = 'none';
+  document.getElementById('admin-pass-modal').style.display = 'flex';
+}
+
+function closeAdminPassModal() {
+  document.getElementById('admin-pass-modal').style.display = 'none';
+}
+
+function checkAdminPassword() {
+  const input = document.getElementById('admin-pass-input').value;
+  if (input === '197107') {
+    closeAdminPassModal();
+    openAdminDashboard();
+  } else {
+    document.getElementById('admin-pass-error').style.display = 'block';
+  }
+}
+
+function openAdminDashboard() {
+  const container = document.getElementById('admin-log-container');
+  container.innerHTML = '';
+
+  const logs = JSON.parse(localStorage.getItem('mcd_trainer_logs') || '[]');
+
+  if (logs.length === 0) {
+    container.innerHTML = '<p style="text-align: center; color: #777; padding: 20px;">まだプレイ履歴がありません。</p>';
+  } else {
+    logs.forEach((log) => {
+      const card = document.createElement('div');
+      card.className = 'admin-log-card';
+
+      let qListHTML = '';
+      if (log.questions && log.questions.length > 0) {
+        log.questions.forEach(q => {
+          const statusClass = q.isCorrect ? 'q-success' : 'q-error';
+          const statusBadge = q.isCorrect ? '正解' : `不合格 (${q.reason || '過不足あり'})`;
+          qListHTML += `<div class="admin-log-qitem ${statusClass}">`;
+          qListHTML += `<strong>Q${q.qNum}. ${q.name}</strong><br>`;
+          qListHTML += `<span>結果: ${statusBadge} | 正解: ${q.correctNote}</span>`;
+          qListHTML += `</div>`;
+        });
+      }
+
+      card.innerHTML = `
+        <div class="admin-log-header">
+          <span>🕒 <strong>${log.timestamp}</strong></span>
+          <span class="admin-log-mode">${log.mode}</span>
+        </div>
+        <div style="font-size: 1rem; font-weight: bold; margin-bottom: 10px; color: #da291c;">
+          📊 結果: ${log.resultText}
+        </div>
+        <div>
+          <strong style="font-size: 0.85rem; color: #555;">【出題ログと回答】:</strong>
+          <div style="margin-top: 5px;">${qListHTML}</div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  document.getElementById('admin-dashboard-modal').style.display = 'flex';
+}
+
+function closeAdminDashboardModal() {
+  document.getElementById('admin-dashboard-modal').style.display = 'none';
+}
+
+function clearAdminLogs() {
+  if (confirm('すべてのプレイ履歴を削除しますか？')) {
+    localStorage.removeItem('mcd_trainer_logs');
+    openAdminDashboard();
+  }
 }
 
 function openStudyModal() {
