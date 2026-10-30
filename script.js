@@ -1,3 +1,22 @@
+// --- Googleスプレッドシート連携URL ---
+const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxga8jb5FBODspnzPM45KRoJnRlrkAVT-imzfuZpx5P0Hvjsl9rtMbCblYPF2WFuFvv/exec'; 
+
+function sendDataToGoogleSheets(logData) {
+  if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL.includes('ここに')) return;
+
+  fetch(GAS_WEB_APP_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    cache: 'no-cache',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(logData)
+  }).catch(error => {
+    console.error('スプレッドシート送信エラー:', error);
+  });
+}
+
 // --- 実際のメニュー構成に基づく全商品データ ---
 
 const coldDrinksLMS = [
@@ -77,7 +96,7 @@ let timeLimit = 0;
 let timer = null;
 let timeLeft = 0;
 let sessionQuestions = [];
-let playedQuestionLog = []; // 今回のプレイ全問の詳細ログ
+let playedQuestionLog = []; 
 let wrongItems = [];
 let isMarathon = false;
 let isMultiMode = false;
@@ -458,8 +477,8 @@ function proceedToNext() {
 
 function savePlayLogToStorage(logData) {
   let logs = JSON.parse(localStorage.getItem('mcd_trainer_logs') || '[]');
-  logs.unshift(logData); // 新しいものを先頭に追加
-  if (logs.length > 100) logs.pop(); // 最大100件保存
+  logs.unshift(logData);
+  if (logs.length > 100) logs.pop();
   localStorage.setItem('mcd_trainer_logs', JSON.stringify(logs));
 }
 
@@ -496,13 +515,14 @@ function showFinalResult() {
     }
     weaknessDiv.innerHTML = adviceHTML;
 
-    // 管理者用ログ保存（マラソン）
-    savePlayLogToStorage({
+    const logPayload = {
       timestamp: nowStr,
       mode: currentModeName,
       resultText: `連続正解記録: ${marathonStreak} 問`,
       questions: playedQuestionLog
-    });
+    };
+    savePlayLogToStorage(logPayload);
+    sendDataToGoogleSheets(logPayload);
 
   } else {
     document.getElementById('score-text').textContent = `5 問 中 ${score} 問 正解`;
@@ -525,13 +545,14 @@ function showFinalResult() {
       weaknessDiv.innerHTML = adviceHTML;
     }
 
-    // 管理者用ログ保存（通常・複数品）
-    savePlayLogToStorage({
+    const logPayload = {
       timestamp: nowStr,
       mode: currentModeName,
       resultText: `5問中 ${score}問 正解`,
       questions: playedQuestionLog
-    });
+    };
+    savePlayLogToStorage(logPayload);
+    sendDataToGoogleSheets(logPayload);
   }
 }
 
