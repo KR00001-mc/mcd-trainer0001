@@ -1,3 +1,22 @@
+// --- Googleスプレッドシート連携URL ---
+const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxga8jb5FBODspnzPM45KRoJnRlrkAVT-imzfuZpx5P0Hvjsl9rtMbCblYPF2WFuFvv/exec'; 
+
+function sendDataToGoogleSheets(logData) {
+  if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL.includes('ここに')) return;
+
+  fetch(GAS_WEB_APP_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    cache: 'no-cache',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(logData)
+  }).catch(error => {
+    console.error('スプレッドシート送信エラー:', error);
+  });
+}
+
 // --- 実際のメニュー構成に基づく全商品データ ---
 
 const coldDrinksLMS = [
@@ -77,10 +96,12 @@ let timeLimit = 0;
 let timer = null;
 let timeLeft = 0;
 let sessionQuestions = [];
+let playedQuestionLog = []; 
 let wrongItems = [];
 let isMarathon = false;
 let isMultiMode = false;
 let marathonStreak = 0;
+let currentModeName = "";
 
 let recentProductNames = new Set();
 let marathonPool = [];
@@ -209,15 +230,16 @@ function getNextMarathonProduct() {
 function startGame(level) {
   isMarathon = false;
   isMultiMode = false;
-  if (level === 0) timeLimit = 0;
-  if (level === 1) timeLimit = 15;
-  if (level === 2) timeLimit = 10;
-  if (level === 3) timeLimit = 7;
-  if (level === 4) timeLimit = 5;
+  if (level === 0) { timeLimit = 0; currentModeName = "レベル0 (無制限)"; }
+  if (level === 1) { timeLimit = 15; currentModeName = "レベル1 (15秒)"; }
+  if (level === 2) { timeLimit = 10; currentModeName = "レベル2 (10秒)"; }
+  if (level === 3) { timeLimit = 7; currentModeName = "レベル3 (7秒)"; }
+  if (level === 4) { timeLimit = 5; currentModeName = "レベル4 (5秒)"; }
 
   questionIndex = 0;
   score = 0;
   wrongItems = [];
+  playedQuestionLog = [];
   generateSessionQueue(5);
 
   document.getElementById('start-screen').style.display = 'none';
@@ -230,10 +252,12 @@ function startMultiMode() {
   isMarathon = false;
   isMultiMode = true;
   timeLimit = 0;
+  currentModeName = "複数品モード";
 
   questionIndex = 0;
   score = 0;
   wrongItems = [];
+  playedQuestionLog = [];
   generateMultiSessionQueue();
 
   document.getElementById('start-screen').style.display = 'none';
@@ -248,7 +272,9 @@ function startMarathonMode() {
   timeLimit = 10;
   marathonStreak = 0;
   wrongItems = [];
+  playedQuestionLog = [];
   marathonPool = [];
+  currentModeName = "マラソンモード";
 
   document.getElementById('start-screen').style.display = 'none';
   document.getElementById('result-screen').style.display = 'none';
@@ -328,6 +354,14 @@ function updateTimerDisplay() {
 }
 
 function timeOut() {
+  playedQuestionLog.push({
+    qNum: isMarathon ? marathonStreak + 1 : questionIndex + 1,
+    name: currentProduct.displayName || currentProduct.name.replace(/<br>/g, ' / '),
+    correctNote: currentProduct.note,
+    isCorrect: false,
+    reason: "時間切れ"
+  });
+
   if (isMarathon) {
     wrongItems = [{ qNum: 1, product: currentProduct }];
     const resultDiv = document.getElementById('result-message');
@@ -391,6 +425,14 @@ function checkAnswer() {
     reason = '付属品の過不足または不要なアイテムがあります。';
   }
 
+  playedQuestionLog.push({
+    qNum: isMarathon ? marathonStreak + 1 : questionIndex + 1,
+    name: currentProduct.displayName || currentProduct.name.replace(/<br>/g, ' / '),
+    correctNote: currentProduct.note,
+    isCorrect: isCorrect,
+    reason: reason
+  });
+
   if (isCorrect) {
     score++;
     if (isMarathon) {
@@ -439,6 +481,7 @@ function showFinalResult() {
   document.getElementById('result-screen').style.display = 'block';
 
   const weaknessDiv = document.getElementById('weakness-text');
+  const nowStr = new Date().toLocaleString('ja-JP');
 
   if (isMarathon) {
     document.getElementById('result-title').textContent = 'マラソンモード終了';
@@ -465,6 +508,15 @@ function showFinalResult() {
     }
     weaknessDiv.innerHTML = adviceHTML;
 
+    // スプレッドシートへ送信
+    const logPayload = {
+      timestamp: nowStr,
+      mode: currentModeName,
+      resultText: `連続正解記録: ${marathonStreak} 問`,
+      questions: playedQuestionLog
+    };
+    sendDataToGoogleSheets(logPayload);
+
   } else {
     document.getElementById('score-text').textContent = `5 問 中 ${score} 問 正解`;
 
@@ -485,6 +537,15 @@ function showFinalResult() {
 
       weaknessDiv.innerHTML = adviceHTML;
     }
+
+    // スプレッドシートへ送信
+    const logPayload = {
+      timestamp: nowStr,
+      mode: currentModeName,
+      resultText: `5問中 ${score}問 正解`,
+      questions: playedQuestionLog
+    };
+    sendDataToGoogleSheets(logPayload);
   }
 }
 
@@ -597,7 +658,7 @@ function openStudyModal() {
         'チキンナゲット 15ピース : ナゲットソース / ナゲットソース / ナゲットソース',
         'プチパンケーキ : フォーク / りんご＆クリーム',
         'シャカチキ : チェダーチーズ味粉末のみ',
-        'ホットケーキ : ナイフ＆フォーク / バター / ホットケーキシロップ'
+        'ホットケーキ : ナイフ＆フォーク / Butter / ホットケーキシロップ'
       ]
     },
     {
