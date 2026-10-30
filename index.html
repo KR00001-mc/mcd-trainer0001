@@ -16,9 +16,8 @@
     <main>
       <!-- スタート前のレベル・モード選択画面 -->
       <section id="start-screen" class="screen">
-        <div class="top-nav-box">
+        <div class="study-mode-box">
           <button class="btn-study" onclick="openStudyModal()">📖 勉強用モード（全メニュー・答え一覧）</button>
-          <button class="btn-admin" onclick="openAdminPassModal()">🔒 管理者専用</button>
         </div>
 
         <h2>モード・難易度を選んでスタート</h2>
@@ -137,38 +136,6 @@
           <button onclick="closeHomeConfirmModal()" style="background: #9e9e9e; color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 1rem;">いいえ</button>
           <button onclick="executeReturnHome()" style="background: #da291c; color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 1rem;">はい</button>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 管理者パスワード入力モーダル -->
-  <div id="admin-pass-modal" class="modal" style="display: none;">
-    <div class="modal-content" style="max-width: 360px; text-align: center;">
-      <div class="modal-header" style="background: #37474f;">
-        <h2>🔒 管理者認証</h2>
-        <span class="close-btn" onclick="closeAdminPassModal()">&times;</span>
-      </div>
-      <div class="modal-body" style="padding: 20px;">
-        <p style="margin-bottom: 15px; font-size: 0.95rem; font-weight: bold;">パスワードを入力してください</p>
-        <input type="password" id="admin-pass-input" placeholder="パスワード" style="width: 80%; padding: 10px; font-size: 1.1rem; text-align: center; border: 2px solid #ccc; border-radius: 6px; margin-bottom: 15px;">
-        <div id="admin-pass-error" style="color: #da291c; font-size: 0.85rem; display: none; margin-bottom: 10px; font-weight: bold;">パスワードが違います</div>
-        <button onclick="checkAdminPassword()" style="background: #37474f; color: white; border: none; padding: 10px 25px; font-size: 1rem; font-weight: bold; border-radius: 6px; cursor: pointer;">認証</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 管理者専用ダッシュボードモーダル -->
-  <div id="admin-dashboard-modal" class="modal" style="display: none;">
-    <div class="modal-content" style="max-width: 700px;">
-      <div class="modal-header" style="background: #37474f;">
-        <h2>📊 プレイ履歴ログ (管理者専用)</h2>
-        <span class="close-btn" onclick="closeAdminDashboardModal()">&times;</span>
-      </div>
-      <div class="modal-body" id="admin-log-container">
-        <!-- 履歴データがここに表示されます -->
-      </div>
-      <div style="padding: 12px 20px; background: #f5f5f5; text-align: right; border-top: 1px solid #ddd;">
-        <button onclick="clearAdminLogs()" style="background: #c62828; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: bold;">🗑️ 履歴を消去</button>
       </div>
     </div>
   </div>
