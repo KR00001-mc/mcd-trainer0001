@@ -76,9 +76,8 @@ const specialDrinkProducts = [
   { name: 'マックシェイク チョコレート (M)', category: 'マックシェイク・フロート', required: ['ストロー'], note: 'ストローのみ' },
   { name: 'マックフロート コーラ', category: 'マックシェイク・フロート', required: ['スプーンストロー'], note: 'スプーンストローのみ' },
   { name: 'マックフロート コーヒー', category: 'マックシェイク・フロート', required: ['スプーンストロー'], note: 'スプーンストローのみ' },
-  // 新規追加
-  { name: 'レモネード フィズ (S)', category: 'マックシェイク・フロート', required: ['ストロー'], note: 'ストローのみ' },
-  { name: 'レモネード フィズ (M)', category: 'マックシェイク・フロート', required: ['ストロー'], note: 'ストローのみ' },
+  // サイズなしで追加
+  { name: 'レモネード フィズ', category: 'マックシェイク・フロート', required: ['ストロー'], note: 'ストローのみ' },
   { name: 'レモネード フロート', category: 'マックシェイク・フロート', required: ['スプーンストロー'], note: 'スプーンストローのみ' }
 ];
 
@@ -117,7 +116,6 @@ function getAllPossibleProducts() {
       list.push({ name: `${base} (${size})`, category: 'コールドドリンク', required: [], note: 'コンディメントなし' });
     });
   });
-  // オレンジ Mサイズ解禁
   list.push({ name: 'ミニッツメイド オレンジ (S)', category: 'コールドドリンク', required: [], note: 'コンディメントなし' });
   list.push({ name: 'ミニッツメイド オレンジ (M)', category: 'コールドドリンク', required: [], note: 'コンディメントなし' });
 
@@ -652,7 +650,7 @@ function openStudyModal() {
       items: [
         'マックシェイク : ストローのみ',
         'マックフロート / レモネード フロート : スプーンストローのみ',
-        'レモネード フィズ (S, M) : ストローのみ'
+        'レモネード フィズ : ストローのみ'
       ]
     },
     {
